@@ -16,27 +16,42 @@ type Snapshot = {
 type HeroSectionProps = {
   hero: Hero
   snapshot: Snapshot
+  theme: 'dark' | 'light'
 }
 
-function HeroSection({ hero, snapshot }: HeroSectionProps) {
+function HeroSection({ hero, snapshot, theme }: HeroSectionProps) {
+  const isDark = theme === 'dark'
+
   return (
     <section
       id="hero"
-      className="bg-gradient-to-br from-[#15151e] via-[#050509] to-[#050509] pb-12 pt-16"
+      className={`pb-12 pt-16 ${
+        isDark ? 'bg-[#050509] text-slate-50' : 'bg-slate-50 text-slate-900'
+      }`}
       aria-labelledby="hero-title"
     >
       <div className="mx-auto grid max-w-5xl gap-10 px-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2.2fr)] md:items-center">
         <div className="max-w-xl space-y-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-indigo-300">
+          <p
+            className={`text-xs font-semibold uppercase tracking-[0.25em] ${
+              isDark ? 'text-indigo-300' : 'text-indigo-600'
+            }`}
+          >
             {hero.eyebrow}
           </p>
           <h1
             id="hero-title"
-            className="text-balance text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl md:text-5xl"
+            className={`text-balance text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl ${
+              isDark ? 'text-slate-50' : 'text-slate-900'
+            }`}
           >
             {hero.title}
           </h1>
-          <p className="text-sm leading-relaxed text-slate-300">
+          <p
+            className={`text-sm leading-relaxed ${
+              isDark ? "text-slate-300" : "text-slate-700"
+            }`}
+          >
             {hero.description}
           </p>
           <div className="flex flex-col items-start gap-3 pt-2 sm:flex-row sm:items-center">
@@ -56,7 +71,13 @@ function HeroSection({ hero, snapshot }: HeroSectionProps) {
           className="mx-auto w-full max-w-xs md:max-w-sm"
           aria-label="Profile summary"
         >
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#181827] to-[#0b0b14] p-5 shadow-[0_18px_45px_rgba(0,0,0,0.8)]">
+          <div
+            className={`rounded-2xl p-5 shadow-[0_18px_45px_rgba(0,0,0,0.8)] border ${
+              isDark
+                ? 'border-white/10 bg-gradient-to-b from-[#181827] to-[#0b0b14]'
+                : 'border-slate-200 bg-white'
+            }`}
+          >
             <div className="flex items-center gap-3 pb-4">
               {hero.avatarUrl && (
                 <img
@@ -75,11 +96,15 @@ function HeroSection({ hero, snapshot }: HeroSectionProps) {
                 </p>
               </div>
             </div>
-            <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-slate-200">
+            <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
               {snapshot.items.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full bg-slate-900/60 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-200"
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] ${
+                    isDark
+                      ? 'bg-slate-900/60 text-slate-200'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
                 >
                   {item}
                 </span>

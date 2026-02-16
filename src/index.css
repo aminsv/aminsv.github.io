@@ -2,3 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
+  }
+
+  .dark body {
+    @apply bg-[#050509] text-slate-50;
+  }
+}
+
+

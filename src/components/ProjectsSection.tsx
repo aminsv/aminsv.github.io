@@ -24,18 +24,18 @@ function ProjectsSection({ projects }: ProjectsSectionProps) {
   return (
     <section
       id="projects"
-      className="border-t border-slate-800 bg-[#050509] py-12"
+      className="border-t border-slate-200 bg-slate-50 py-12 dark:border-slate-800 dark:bg-[#050509]"
       aria-labelledby="projects-title"
     >
       <div className="mx-auto max-w-5xl px-6">
         <header className="mb-8 max-w-2xl">
           <h2
             id="projects-title"
-            className="mb-2 text-xs font-semibold uppercase tracking-[0.26em] text-slate-300"
+            className="mb-2 text-xs font-semibold uppercase tracking-[0.26em] text-slate-600 dark:text-slate-300"
           >
             {projects.title}
           </h2>
-          <p className="text-sm leading-relaxed text-slate-300">
+          <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
             {projects.body}
           </p>
         </header>

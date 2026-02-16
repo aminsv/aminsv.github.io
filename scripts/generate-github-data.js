@@ -183,7 +183,7 @@ async function main() {
   const repos = reposRaw
     .map(pickRepoFields)
     .filter(Boolean)
-    // Keep the most relevant repos first: non-archived, non-forked, sorted by pushed_at
+    // Keep the most recently pushed first by default
     .sort((a, b) => {
       const aTime = a?.pushed_at ? Date.parse(a.pushed_at) : 0
       const bTime = b?.pushed_at ? Date.parse(b.pushed_at) : 0
