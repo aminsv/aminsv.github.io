@@ -6,6 +6,13 @@ type Hero = {
   primaryCtaHref: string
   caption: string
   avatarUrl?: string
+  contact?: {
+    email?: string | null
+    location?: string | null
+    company?: string | null
+    website?: string | null
+    twitter?: string | null
+  }
 }
 
 type Snapshot = {
@@ -118,6 +125,55 @@ function HeroSection({ hero, snapshot, theme }: HeroSectionProps) {
                 </span>
               ))}
             </div>
+            {hero.contact && (
+              <div className="mt-4 border-t border-slate-800/40 pt-3 text-[11px] text-slate-300 dark:text-slate-300">
+                <div className="space-y-1.5">
+                  {hero.contact.company && (
+                    <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                      <span className="h-3 w-3 rounded-full bg-slate-400/80" />
+                      <span>{hero.contact.company}</span>
+                    </p>
+                  )}
+                  {hero.contact.website && (
+                    <p className="flex items-center gap-1.5">
+                      <span className="h-3 w-3 rounded-full bg-indigo-400/80" />
+                      <a
+                        href={hero.contact.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-indigo-300 hover:text-indigo-200"
+                      >
+                        {hero.contact.website}
+                      </a>
+                    </p>
+                  )}
+                  {hero.contact.email && (
+                    <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                      <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
+                      <a
+                        href={`mailto:${hero.contact.email}`}
+                        className="hover:underline"
+                      >
+                        {hero.contact.email}
+                      </a>
+                    </p>
+                  )}
+                  {hero.contact.twitter && (
+                    <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                      <span className="h-3 w-3 rounded-full bg-sky-400/80" />
+                      <a
+                        href={`https://twitter.com/${hero.contact.twitter}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:underline"
+                      >
+                        @{hero.contact.twitter}
+                      </a>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </aside>
       </div>

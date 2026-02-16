@@ -36,6 +36,11 @@ function pickProfileFields(json, owner, profileType) {
       ? `https://github.com/${owner}`
       : `https://github.com/${owner}`),
     description: json.description ?? null,
+    email: json.email ?? null,
+    location: json.location ?? null,
+    company: json.company ?? null,
+    blog: json.blog ?? null,
+    twitter_username: json.twitter_username ?? null,
     public_repos: json.public_repos ?? 0,
     followers: json.followers ?? 0,
     following: json.following ?? 0,
@@ -379,6 +384,10 @@ async function main() {
     )
   }
 
+  if (profile.location) {
+    snapshotItems.unshift(`Based in ${profile.location}`)
+  }
+
   const philosophyCards = [
     {
       title: 'Repositories & activity',
@@ -420,6 +429,13 @@ async function main() {
       primaryCtaLabel: 'View on GitHub',
       primaryCtaHref: profile.html_url,
       caption: 'Data fetched once at build time. No runtime API calls.',
+      contact: {
+        email: profile.email,
+        location: profile.location,
+        company: profile.company,
+        website: profile.blog,
+        twitter: profile.twitter_username,
+      },
     },
     snapshot: {
       title: 'GitHub snapshot',
