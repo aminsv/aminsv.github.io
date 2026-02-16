@@ -333,11 +333,40 @@ async function main() {
     ...additionalReposRaw.map((repo) => toNormalizedRepo(repo, false)),
   ]
 
-  const heroDescription =
-    profile.description ||
-    `This site turns the GitHub ${
-      (profile.type || profileType).toLowerCase()
-    } for ${profile.login} into a focused, static landing page. A snapshot of repositories and metadata is pulled at build time so everything stays fast and deterministic.`
+  const displayName = profile.name || profile.login
+  let heroDescription = (profile.description || '').trim()
+
+  if (!heroDescription) {
+    const sentences = []
+
+    // Sentence 1: activity + stars
+    const starsPart =
+      totalStars > 0 ? ` with ${totalStars} stars across these projects` : ''
+    sentences.push(
+      `${displayName} maintains ${profile.public_repos} public repositories on GitHub${starsPart}.`,
+    )
+
+    // Sentence 2: language + topics
+    const languagePart = topLanguage
+      ? `Most of the work centers around ${topLanguage}`
+      : null
+    const topicsPreview =
+      topTopics.length > 0 ? topTopics.slice(0, 3).join(', ') : null
+
+    if (languagePart && topicsPreview) {
+      sentences.push(
+        `${languagePart}, with repositories touching topics like ${topicsPreview}.`,
+      )
+    } else if (languagePart) {
+      sentences.push(`${languagePart}.`)
+    } else if (topicsPreview) {
+      sentences.push(
+        `Repositories explore topics such as ${topicsPreview} and related tooling.`,
+      )
+    }
+
+    heroDescription = sentences.join(' ')
+  }
 
   const snapshotItems = [
     `${profile.public_repos} public repositories`,
