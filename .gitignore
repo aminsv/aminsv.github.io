@@ -20,7 +20,8 @@ pnpm-debug.log*
 src/generated/
 src/siteContent.json
 
-# Local config (keep example tracked)
+# Local config (keep examples tracked)
+gitforge.config.json
 github-profile.config.json
 
 

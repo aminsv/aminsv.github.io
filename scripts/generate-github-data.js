@@ -1,9 +1,13 @@
-// Simple build-time GitHub fetcher.
+#!/usr/bin/env node
+
+// Simple build-time GitHub fetcher & CLI.
 // Fetches profile + repos and writes a typed TS module under src/generated/githubData.ts
 // so the React app can use static, hardcoded data at runtime.
 //
-// Usage:
+// Usage (locals):
+//   node scripts/generate-github-data.js usedamru --type org
 //   GITHUB_OWNER=usedamru GITHUB_PROFILE_TYPE=org node scripts/generate-github-data.js
+//   pnpm generate:github
 //
 // Defaults to the Damru org if no env vars are provided.
 
@@ -15,7 +19,8 @@ const rootDir = new URL('..', import.meta.url).pathname
 const generatedDir = path.join(rootDir, 'src', 'generated')
 const tsOutputFile = path.join(generatedDir, 'githubData.ts')
 const siteContentJsonPath = path.join(rootDir, 'src', 'siteContent.json')
-const configPath = path.join(rootDir, 'github-profile.config.json')
+const primaryConfigPath = path.join(rootDir, 'gitforge.config.json')
+const legacyConfigPath = path.join(rootDir, 'github-profile.config.json')
 
 /**
  * Minimal shape we care about for GitHub profile.
@@ -82,23 +87,61 @@ async function main() {
   let fileConfig = {}
 
   try {
-    const raw = await fs.readFile(configPath, 'utf8')
+    // Prefer the short gitforge.config.json, but fall back to the legacy name
+    let raw = ''
+    try {
+      raw = await fs.readFile(primaryConfigPath, 'utf8')
+    } catch (error) {
+      if (error && error.code === 'ENOENT') {
+        raw = await fs.readFile(legacyConfigPath, 'utf8')
+      } else {
+        throw error
+      }
+    }
     fileConfig = JSON.parse(raw)
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
-      console.warn('Could not read github-profile.config.json, using defaults.')
+      console.warn('Could not read gitforge.config.json or github-profile.config.json, using defaults.')
     }
   }
 
   const defaultOwner = 'usedamru'
   const defaultProfileType = 'org'
 
+  // --- CLI args: [owner] [--type user|org] ---
+  const argv = process.argv.slice(2)
+  let cliOwner = undefined
+  let cliType = undefined
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i]
+    if (!arg) continue
+
+    if (arg === '--type' && argv[i + 1]) {
+      cliType = argv[i + 1]
+      i += 1
+      continue
+    }
+
+    if (arg.startsWith('--type=')) {
+      cliType = arg.split('=')[1]
+      continue
+    }
+
+    // First non-flag argument is treated as the owner
+    if (!arg.startsWith('-') && !cliOwner) {
+      cliOwner = arg
+    }
+  }
+
   const owner =
+    cliOwner ??
     process.env.GITHUB_OWNER ??
     fileConfig.githubOwner ??
     defaultOwner
 
   const profileTypeEnv = (
+    cliType ??
     process.env.GITHUB_PROFILE_TYPE ??
     fileConfig.profileType ??
     defaultProfileType

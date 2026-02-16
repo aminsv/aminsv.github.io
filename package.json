@@ -1,11 +1,15 @@
 {
-  "name": "damru-site",
-  "private": true,
-  "version": "0.0.0",
+  "name": "gitforge",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
+  "bin": {
+    "gitforge": "scripts/generate-github-data.js"
+  },
   "scripts": {
     "dev": "vite",
     "generate:github": "node scripts/generate-github-data.js",
+    "gitforge": "node scripts/generate-github-data.js",
     "build": "pnpm generate:github && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
