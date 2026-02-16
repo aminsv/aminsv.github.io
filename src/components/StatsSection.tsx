@@ -100,7 +100,23 @@ function StatsSection({ stats }: StatsSectionProps) {
 
         {/* Key Metrics Grid */}
         <div className="mb-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {/* Repositories */}
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-white/10 dark:bg-gradient-to-b dark:from-[#171824] dark:to-[#10111b]">
+            <div className="mb-2 flex justify-center">
+              <svg
+                className="h-6 w-6 text-slate-600 dark:text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+            </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-50">
               {metrics.totalRepos}
             </div>
@@ -110,7 +126,18 @@ function StatsSection({ stats }: StatsSectionProps) {
                 : 'Repositories'}
             </div>
           </div>
+
+          {/* Total Stars */}
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-white/10 dark:bg-gradient-to-b dark:from-[#171824] dark:to-[#10111b]">
+            <div className="mb-2 flex justify-center">
+              <svg
+                className="h-6 w-6 text-amber-500 dark:text-amber-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+            </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-50">
               {metrics.totalStars.toLocaleString()}
             </div>
@@ -118,7 +145,24 @@ function StatsSection({ stats }: StatsSectionProps) {
               Total Stars
             </div>
           </div>
+
+          {/* Languages */}
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-white/10 dark:bg-gradient-to-b dark:from-[#171824] dark:to-[#10111b]">
+            <div className="mb-2 flex justify-center">
+              <svg
+                className="h-6 w-6 text-blue-600 dark:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
+              </svg>
+            </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-50">
               {metrics.languagesUsed}
             </div>
@@ -126,7 +170,24 @@ function StatsSection({ stats }: StatsSectionProps) {
               Languages
             </div>
           </div>
+
+          {/* Followers */}
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-white/10 dark:bg-gradient-to-b dark:from-[#171824] dark:to-[#10111b]">
+            <div className="mb-2 flex justify-center">
+              <svg
+                className="h-6 w-6 text-emerald-600 dark:text-emerald-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+            </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-50">
               {metrics.followers}
             </div>
