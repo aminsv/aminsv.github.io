@@ -1,0 +1,10 @@
+{
+  "//_comment": "Copy this file to github-profile.config.json and adjust values for your GitHub profile.",
+  "githubOwner": "usedamru",
+  "profileType": "org",
+  "featuredRepos": [
+    "sql2nosql"
+  ],
+  "maxFeaturedRepos": 4
+}
+
