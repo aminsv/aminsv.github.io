@@ -75,11 +75,16 @@ function HeroSection({ hero, snapshot }: HeroSectionProps) {
                 </p>
               </div>
             </div>
-            <ul className="space-y-1.5 text-[13px] text-slate-200">
+            <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] text-slate-200">
               {snapshot.items.map((item) => (
-                <li key={item}>{item}</li>
+                <span
+                  key={item}
+                  className="rounded-full bg-slate-900/60 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-200"
+                >
+                  {item}
+                </span>
               ))}
-            </ul>
+            </div>
           </div>
         </aside>
       </div>

@@ -58,9 +58,16 @@ function RepoCard({ repo }: RepoCardProps) {
           )}
         </dl>
         {repo.topics && repo.topics.length > 0 && (
-          <p className="text-[11px] text-slate-400">
-            Topics: <span className="font-mono">{repo.topics.join(', ')}</span>
-          </p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {repo.topics.map((topic) => (
+              <span
+                key={topic}
+                className="rounded-full border border-indigo-400/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-indigo-200"
+              >
+                {topic}
+              </span>
+            ))}
+          </div>
         )}
       </div>
     </article>
