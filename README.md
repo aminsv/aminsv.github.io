@@ -66,10 +66,13 @@ cp gitforge.config.example.json gitforge.config.json
 
 ```jsonc
 {
-  "githubOwner": "amide-init",   // user or org name
-  "profileType": "user",         // "user" | "org"
-  "featuredRepos": ["tide-app"], // optional; list of repo names
-  "maxFeaturedRepos": 4          // optional; default 4
+  "githubOwner": "amide-init",         // user or org name
+  "profileType": "user",               // "user" | "org"
+  "featuredRepos": ["tide-app"],       // optional; list of repo names to always include
+  "listedRepo": {
+    "count": 4,                        // how many *additional* repos to list
+    "sort": "date"                     // "date" | "star"
+  }
 }
 ```
 
