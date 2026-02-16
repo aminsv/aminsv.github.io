@@ -46,6 +46,46 @@ function App() {
     window.localStorage.setItem('gitforge-theme', theme)
   }, [theme])
 
+  // Update document title and favicon with username
+  useEffect(() => {
+    document.title = hero.title || 'GitHub Profile'
+
+    // Create favicon with first character of name
+    const firstChar = (hero.title || '?').charAt(0).toUpperCase()
+    
+    // Create SVG favicon with gradient background matching header style
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="6" fill="url(#grad)"/>
+        <text x="16" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#050509" text-anchor="middle">${firstChar}</text>
+      </svg>
+    `
+    
+    const svgBlob = new Blob([svg], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(svgBlob)
+
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.getElementsByTagName('head')[0].appendChild(link)
+    }
+
+    link.type = 'image/svg+xml'
+    link.href = url
+
+    // Cleanup blob URL on unmount
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [hero.title])
+
   const rootClasses =
     'min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-[#050509] dark:text-slate-50'
 
@@ -68,9 +108,18 @@ function App() {
             className="inline-flex items-center gap-2 no-underline text-slate-900 dark:text-slate-100"
             aria-label={`${hero.title} home`}
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-sm font-semibold text-[#050509]" aria-hidden="true">
-              {(hero.title ?? '?').charAt(0).toUpperCase()}
-            </span>
+            {hero.avatarUrl ? (
+              <img
+                src={hero.avatarUrl}
+                alt={`${hero.title} avatar`}
+                className="h-8 w-8 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                aria-hidden="true"
+              />
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-sm font-semibold text-[#050509]" aria-hidden="true">
+                {(hero.title ?? '?').charAt(0).toUpperCase()}
+              </span>
+            )}
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-900 dark:text-slate-200">
               {hero.title}
             </span>
