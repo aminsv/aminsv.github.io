@@ -88,10 +88,18 @@ function HeroSection({ hero, snapshot, theme }: HeroSectionProps) {
                 />
               )}
               <div className="space-y-0.5">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                <p
+                  className={`text-xs font-semibold uppercase tracking-[0.2em] ${
+                    isDark ? 'text-slate-200' : 'text-slate-800'
+                  }`}
+                >
                   {snapshot.title}
                 </p>
-                <p className="text-[11px] text-slate-400">
+                <p
+                  className={`text-[11px] ${
+                    isDark ? 'text-slate-400' : 'text-slate-600'
+                  }`}
+                >
                   Snapshot generated from GitHub at build time.
                 </p>
               </div>

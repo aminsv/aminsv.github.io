@@ -50,20 +50,38 @@ function App() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <a
             href="#hero"
-            className="inline-flex items-center gap-2 text-slate-100 no-underline"
+            className="inline-flex items-center gap-2 no-underline text-slate-900 dark:text-slate-100"
             aria-label={`${hero.title} home`}
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-sm font-semibold text-[#050509]" aria-hidden="true">
               {(hero.title ?? '?').charAt(0).toUpperCase()}
             </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-900 dark:text-slate-200">
               {hero.title}
             </span>
           </a>
-          <nav className="flex items-center gap-3 text-xs font-medium text-slate-300" aria-label="Primary">
-            <a href="#philosophy" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-400 hover:text-slate-50">Philosophy</a>
-            <a href="#projects" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-400 hover:text-slate-50">Projects</a>
-            <a href={footer.githubUrl} target="_blank" rel="noreferrer" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-400 hover:text-slate-50">
+          <nav
+            className="flex items-center gap-3 text-xs font-medium text-slate-700 dark:text-slate-300"
+            aria-label="Primary"
+          >
+            <a
+              href="#philosophy"
+              className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50"
+            >
+              Philosophy
+            </a>
+            <a
+              href="#projects"
+              className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50"
+            >
+              Projects
+            </a>
+            <a
+              href={footer.githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50"
+            >
               {footer.githubLabel}
             </a>
             <button
@@ -71,10 +89,38 @@ function App() {
               onClick={() =>
                 setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
               }
-              className="inline-flex items-center gap-1 rounded-full border border-slate-500/60 bg-black/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-100 transition hover:border-indigo-400/80 hover:bg-black/40"
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] border-slate-300 bg-white/80 text-slate-800 transition hover:bg-white dark:border-slate-500/60 dark:bg-black/20 dark:text-slate-100 dark:hover:bg-black/40"
               aria-label="Toggle light and dark mode"
             >
-              <span>{theme === 'dark' ? 'Light' : 'Dark'} mode</span>
+              <span aria-hidden="true" className="h-5 w-5">
+                {theme === 'dark' ? (
+                  // Sun icon
+                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <circle cx="12" cy="12" r="4" className="fill-amber-400" />
+                    <path
+                      d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                      className="stroke-amber-400"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                ) : (
+                  // Moon icon (slightly larger to balance sun)
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-5 w-5 scale-125"
+                  >
+                    <path
+                      d="M20 12.5A7.5 7.5 0 0 1 11.5 4 6 6 0 1 0 20 12.5Z"
+                      className="fill-slate-700"
+                    />
+                  </svg>
+                )}
+              </span>
+              <span className="sr-only">
+                {theme === 'dark' ? 'Use light mode' : 'Use dark mode'}
+              </span>
             </button>
           </nav>
         </div>
