@@ -143,10 +143,21 @@ async function main() {
     ? fileConfig.featuredRepos.filter((name) => typeof name === 'string')
     : []
 
-  const maxFeaturedRepos =
+  const legacyCount =
     typeof fileConfig.maxFeaturedRepos === 'number' && fileConfig.maxFeaturedRepos > 0
       ? fileConfig.maxFeaturedRepos
-      : 4
+      : undefined
+
+  const listedRepoFromConfig = fileConfig.listedRepo ?? {}
+
+  const listedRepoCount =
+    typeof listedRepoFromConfig.count === 'number' && listedRepoFromConfig.count > 0
+      ? listedRepoFromConfig.count
+      : legacyCount ?? 4
+
+  const listedRepoSortRaw = listedRepoFromConfig.sort
+  const listedRepoSort =
+    listedRepoSortRaw === 'star' || listedRepoSortRaw === 'stars' ? 'star' : 'date'
 
   const profileUrl =
     profileType === 'org'
@@ -181,7 +192,10 @@ async function main() {
 
   const clientConfig = {
     featuredRepos: featuredReposFromConfig,
-    maxFeaturedRepos,
+    listedRepo: {
+      count: listedRepoCount,
+      sort: listedRepoSort,
+    },
   }
 
   // ---------- Build siteContent JSON template used by the React app ----------
@@ -215,26 +229,43 @@ async function main() {
   )
   const topTopics = allTopics.slice(0, 5)
 
-  const repoListFromConfig =
+  const featuredReposRaw =
     clientConfig.featuredRepos && clientConfig.featuredRepos.length > 0
       ? clientConfig.featuredRepos
           .map((name) => repos.find((repo) => repo.name === name))
           .filter(Boolean)
-      : repos
+      : []
 
-  const featuredReposNormalized = repoListFromConfig
-    .slice(0, clientConfig.maxFeaturedRepos)
-    .map((repo) => ({
-      name: repo.name,
-      description:
-        repo.description ??
-        'Repository on GitHub. Edit siteContent.json to customise this copy.',
-      url: repo.html_url,
-      stars: repo.stargazers_count ?? 0,
-      language: repo.language,
-      topics: repo.topics ?? [],
-      lastUpdated: repo.updated_at,
-    }))
+  const remainingReposRaw = repos.filter(
+    (repo) => !featuredReposRaw.some((f) => f.id === repo.id),
+  )
+
+  let additionalSource = remainingReposRaw
+  if (clientConfig.listedRepo.sort === 'star') {
+    additionalSource = [...remainingReposRaw].sort(
+      (a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0),
+    )
+  }
+
+  const additionalReposRaw = additionalSource.slice(0, clientConfig.listedRepo.count)
+
+  const toNormalizedRepo = (repo, featured) => ({
+    name: repo.name,
+    description:
+      repo.description ??
+      'Repository on GitHub. Edit siteContent.json to customise this copy.',
+    url: repo.html_url,
+    stars: repo.stargazers_count ?? 0,
+    language: repo.language,
+    topics: repo.topics ?? [],
+    lastUpdated: repo.updated_at,
+    featured: Boolean(featured),
+  })
+
+  const featuredReposNormalized = [
+    ...featuredReposRaw.map((repo) => toNormalizedRepo(repo, true)),
+    ...additionalReposRaw.map((repo) => toNormalizedRepo(repo, false)),
+  ]
 
   const heroDescription =
     profile.description ||

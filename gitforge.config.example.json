@@ -5,6 +5,9 @@
   "featuredRepos": [
     "sql2nosql"
   ],
-  "maxFeaturedRepos": 4
+  "listedRepo": {
+    "count": 4,
+    "sort": "date"
+  }
 }
 

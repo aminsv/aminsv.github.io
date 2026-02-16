@@ -6,6 +6,7 @@ type Repo = {
   language?: string | null
   topics?: string[]
   lastUpdated?: string
+  featured?: boolean
 }
 
 type RepoCardProps = {
@@ -20,7 +21,14 @@ function RepoCard({ repo }: RepoCardProps) {
     >
       <header className="mb-3 flex items-start justify-between gap-3">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-slate-50">{repo.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-50">{repo.name}</h3>
+            {repo.featured && (
+              <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300 ring-1 ring-emerald-400/60">
+                Featured
+              </span>
+            )}
+          </div>
           <p className="text-[13px] text-slate-300">
             {repo.description ?? 'Repository on GitHub.'}
           </p>
