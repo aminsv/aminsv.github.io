@@ -31,6 +31,7 @@ function pickProfileFields(json, owner, profileType) {
   return {
     login: json.login ?? owner,
     name: json.name ?? null,
+    avatar_url: json.avatar_url ?? null,
     html_url: json.html_url ?? (profileType === 'org'
       ? `https://github.com/${owner}`
       : `https://github.com/${owner}`),
@@ -289,6 +290,7 @@ async function main() {
       eyebrow: 'Open-source, developer-first profile',
       title: profile.name || profile.login,
       description: heroDescription,
+      avatarUrl: profile.avatar_url,
       primaryCtaLabel: 'View on GitHub',
       primaryCtaHref: profile.html_url,
       caption: 'Data fetched once at build time. No runtime API calls.',
