@@ -26,12 +26,12 @@ function RepoCard({ repo }: RepoCardProps) {
           </p>
         </div>
         <a
-          className="inline-flex items-center justify-center rounded-full border border-white/30 bg-black/40 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-100 transition hover:border-white/60 hover:bg-black/70"
+          className="inline-flex items-center justify-center rounded-full bg-slate-900/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-100 ring-1 ring-slate-500/50 transition hover:bg-slate-900 hover:text-white hover:ring-indigo-400/80"
           href={repo.url}
           target="_blank"
           rel="noreferrer"
         >
-          View repo
+          View
         </a>
       </header>
 
