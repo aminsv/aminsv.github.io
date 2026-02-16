@@ -71,7 +71,7 @@ cp gitforge.config.example.json gitforge.config.json
   "featuredRepos": ["tide-app"],       // optional; list of repo names to always include
   "listedRepo": {
     "count": 4,                        // how many *additional* repos to list
-    "sort": "date"                     // "date" | "star"
+    "sort": "date"                     // "date" | "star" | "date-then-star" | "star-then-date"
   }
 }
 ```

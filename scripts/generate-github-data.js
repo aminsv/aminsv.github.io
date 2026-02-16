@@ -155,9 +155,20 @@ async function main() {
       ? listedRepoFromConfig.count
       : legacyCount ?? 4
 
-  const listedRepoSortRaw = listedRepoFromConfig.sort
+  const listedRepoSortRaw = (listedRepoFromConfig.sort || '').toLowerCase()
+  // Supported values:
+  // - "date" (default): newest first
+  // - "star" | "stars": most starred first
+  // - "date-then-star": newest first, breaking ties by stars
+  // - "star-then-date": most starred first, breaking ties by date
   const listedRepoSort =
-    listedRepoSortRaw === 'star' || listedRepoSortRaw === 'stars' ? 'star' : 'date'
+    listedRepoSortRaw === 'star' || listedRepoSortRaw === 'stars'
+      ? 'star'
+      : listedRepoSortRaw === 'date-then-star' || listedRepoSortRaw === 'date_star'
+        ? 'date-then-star'
+        : listedRepoSortRaw === 'star-then-date' || listedRepoSortRaw === 'star_date'
+          ? 'star-then-date'
+          : 'date'
 
   const profileUrl =
     profileType === 'org'
@@ -282,6 +293,24 @@ async function main() {
     additionalSource = [...remainingReposRaw].sort(
       (a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0),
     )
+  } else if (clientConfig.listedRepo.sort === 'date-then-star') {
+    additionalSource = [...remainingReposRaw].sort((a, b) => {
+      const aTime = a?.pushed_at ? Date.parse(a.pushed_at) : 0
+      const bTime = b?.pushed_at ? Date.parse(b.pushed_at) : 0
+      if (bTime !== aTime) return bTime - aTime
+      const aStars = a?.stargazers_count ?? 0
+      const bStars = b?.stargazers_count ?? 0
+      return bStars - aStars
+    })
+  } else if (clientConfig.listedRepo.sort === 'star-then-date') {
+    additionalSource = [...remainingReposRaw].sort((a, b) => {
+      const aStars = a?.stargazers_count ?? 0
+      const bStars = b?.stargazers_count ?? 0
+      if (bStars !== aStars) return bStars - aStars
+      const aTime = a?.pushed_at ? Date.parse(a.pushed_at) : 0
+      const bTime = b?.pushed_at ? Date.parse(b.pushed_at) : 0
+      return bTime - aTime
+    })
   }
 
   const additionalReposRaw = additionalSource.slice(0, clientConfig.listedRepo.count)

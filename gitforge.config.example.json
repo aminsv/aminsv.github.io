@@ -7,7 +7,7 @@
   ],
   "listedRepo": {
     "count": 4,
-    "sort": "date"
+    "sort": "date" // "date" | "star" | "date-then-star" | "star-then-date"
   }
 }
 
