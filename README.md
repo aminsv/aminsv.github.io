@@ -1,3 +1,206 @@
+# gitforge
+
+Generate a polished, static GitHub profile site from any user or organization — using a single CLI command.
+
+- **Input**: a GitHub username/org and (optionally) a small config file.
+- **Output**: a Vite + React + TypeScript site wired to static data generated from the GitHub API.
+- **No runtime API calls**: all data is fetched once at build time and written into JSON/TS files.
+
+> This package is designed to be run via `npx`/`pnpm dlx` or as a local dev dependency — no global install required.
+
+---
+
+## Quick start
+
+### 1. Create a new project directory
+
+In an empty folder:
+
+```bash
+mkdir my-profile && cd my-profile
+```
+
+### 2. Initialize from this template (recommended for now)
+
+Until we add full scaffolding, the simplest flow is:
+
+```bash
+# clone or copy this repo once as a starting template
+git clone https://github.com/usedamru/gitforge.git .
+
+# install deps
+pnpm install   # or: npm install
+```
+
+*(When `gitforge` is published with scaffolding, this step will be replaced with a single `npx gitforge init`.)*
+
+### 3. Generate content from GitHub
+
+You can either pass the owner on the CLI or via config.
+
+#### Option A – CLI only
+
+```bash
+# user profile
+npx gitforge amide-init --type user
+
+# organization
+npx gitforge usedamru --type org
+```
+
+With `pnpm`:
+
+```bash
+pnpm dlx gitforge amide-init --type user
+```
+
+#### Option B – Config file
+
+1. Copy the example:
+
+```bash
+cp gitforge.config.example.json gitforge.config.json
+```
+
+2. Edit `gitforge.config.json`:
+
+```jsonc
+{
+  "githubOwner": "amide-init",   // user or org name
+  "profileType": "user",         // "user" | "org"
+  "featuredRepos": ["tide-app"], // optional; list of repo names
+  "maxFeaturedRepos": 4          // optional; default 4
+}
+```
+
+3. Run the generator (no args needed; it reads the config):
+
+```bash
+npx gitforge
+```
+
+> Precedence for owner/type: CLI args → env vars → `gitforge.config.json` → defaults.
+
+---
+
+## What gitforge generates
+
+The CLI calls the GitHub API once and writes:
+
+- `src/generated/githubData.ts` – raw, typed snapshot of the profile + repos.
+- `src/siteContent.json` – **editable JSON template** used by the React app.
+
+The React app (`src/App.tsx`) reads **only** from `src/siteContent.json`, so:
+
+- You can fully tweak copy/ordering/layout text without touching TypeScript.
+- Regenerating with `gitforge` will overwrite `siteContent.json` with fresh data, so:
+  - Either treat JSON as “generated, don’t edit”, or
+  - Keep a copy / commit your version and regenerate only when needed.
+
+Key sections in `siteContent.json`:
+
+- `hero`: title, subtitle, CTA, caption.
+- `snapshot`: list of profile stats (repos, followers, last updated).
+- `philosophy`: section title, intro, and cards summarizing repo activity/languages/topics.
+- `projects`: section title, intro, and an array of featured repos with:
+  - `name`, `description`, `url`, `stars`, `language`, `topics`, `lastUpdated`.
+- `footer`: short explanatory text + GitHub link label/URL.
+
+---
+
+## Running the site locally
+
+After generating content:
+
+```bash
+pnpm dev        # or: npm run dev
+```
+
+Then open the printed URL (usually `http://localhost:5173`).
+
+To build and preview a production bundle:
+
+```bash
+pnpm build
+pnpm preview
+```
+
+The generated site is:
+
+- Dark, minimal, developer‑focused.
+- Single‑page (no routing).
+- Built with React + TypeScript + Vite.
+
+---
+
+## CLI usage details
+
+### Command
+
+```bash
+gitforge [owner] [--type user|org]
+```
+
+- `owner` (optional): GitHub user or org (e.g. `amide-init`, `steipete`, `usedamru`).
+- `--type` (optional): `user` or `org`.
+
+If you omit both, `gitforge` falls back to:
+
+1. `GITHUB_OWNER` / `GITHUB_PROFILE_TYPE` env vars.
+2. `gitforge.config.json`.
+3. Internal defaults (`usedamru` / `org`).
+
+### Examples
+
+```bash
+# CLI only
+gitforge steipete --type user
+
+# With pnpm (no global install)
+pnpm dlx gitforge steipete --type user
+
+# With config file only
+cp gitforge.config.example.json gitforge.config.json
+gitforge
+```
+
+---
+
+## Project structure (template)
+
+Key files:
+
+- `scripts/generate-github-data.js` – CLI & GitHub fetcher.
+- `src/App.tsx` – main React app wired to `siteContent.json`.
+- `src/App.css` – layout & styling (dark, minimal, responsive).
+- `src/siteContent.json` – generated + editable content JSON.
+- `gitforge.config.example.json` – config template for users.
+- `gitforge.config.json` – user-local config (ignored by git).
+
+---
+
+## Ignored / local files
+
+`.gitignore` is set up to ignore:
+
+- `node_modules`, `dist`, Vite/TS build artefacts.
+- Logs (`*.log`, `logs/`, `npm-debug.log*`, etc.).
+- Editor files (`.vscode`, `.idea`, `.DS_Store`, etc.).
+- Generated content: `src/generated/`, `src/siteContent.json`.
+- Local config: `gitforge.config.json`.
+
+This keeps the repo clean while allowing each user to have their own profile config.
+
+---
+
+## Roadmap ideas
+
+- `gitforge init` – scaffold a fresh project into any empty directory (no manual clone).
+- Additional themes (still minimal, dev‑focused).
+- Multi-profile / team pages.
+
+If you have a specific workflow in mind, open an issue or PR in the repo where this package lives. :)
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

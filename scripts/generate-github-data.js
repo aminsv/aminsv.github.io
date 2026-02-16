@@ -19,8 +19,7 @@ const rootDir = new URL('..', import.meta.url).pathname
 const generatedDir = path.join(rootDir, 'src', 'generated')
 const tsOutputFile = path.join(generatedDir, 'githubData.ts')
 const siteContentJsonPath = path.join(rootDir, 'src', 'siteContent.json')
-const primaryConfigPath = path.join(rootDir, 'gitforge.config.json')
-const legacyConfigPath = path.join(rootDir, 'github-profile.config.json')
+const configPath = path.join(rootDir, 'gitforge.config.json')
 
 /**
  * Minimal shape we care about for GitHub profile.
@@ -87,21 +86,11 @@ async function main() {
   let fileConfig = {}
 
   try {
-    // Prefer the short gitforge.config.json, but fall back to the legacy name
-    let raw = ''
-    try {
-      raw = await fs.readFile(primaryConfigPath, 'utf8')
-    } catch (error) {
-      if (error && error.code === 'ENOENT') {
-        raw = await fs.readFile(legacyConfigPath, 'utf8')
-      } else {
-        throw error
-      }
-    }
+    const raw = await fs.readFile(configPath, 'utf8')
     fileConfig = JSON.parse(raw)
   } catch (error) {
     if (error && error.code !== 'ENOENT') {
-      console.warn('Could not read gitforge.config.json or github-profile.config.json, using defaults.')
+      console.warn('Could not read gitforge.config.json, using defaults.')
     }
   }
 
