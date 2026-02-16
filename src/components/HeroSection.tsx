@@ -2,6 +2,7 @@ type Hero = {
   eyebrow: string
   title: string
   description: string
+  minorInfo?: string | null
   primaryCtaLabel: string
   primaryCtaHref: string
   caption: string
@@ -61,6 +62,15 @@ function HeroSection({ hero, snapshot, theme }: HeroSectionProps) {
           >
             {hero.description}
           </p>
+          {hero.minorInfo && (
+            <p
+              className={`text-xs leading-relaxed ${
+                isDark ? "text-slate-400" : "text-slate-600"
+              }`}
+            >
+              {hero.minorInfo}
+            </p>
+          )}
           <div className="flex flex-col items-start gap-3 pt-2 sm:flex-row sm:items-center">
             <a
               className="inline-flex items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-cyan-400 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#050509] shadow-[0_14px_36px_rgba(37,99,235,0.7)] transition hover:from-blue-500 hover:to-cyan-300"
@@ -125,55 +135,59 @@ function HeroSection({ hero, snapshot, theme }: HeroSectionProps) {
                 </span>
               ))}
             </div>
-            {hero.contact && (
-              <div className="mt-4 border-t border-slate-800/40 pt-3 text-[11px] text-slate-300 dark:text-slate-300">
-                <div className="space-y-1.5">
-                  {hero.contact.company && (
-                    <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                      <span className="h-3 w-3 rounded-full bg-slate-400/80" />
-                      <span>{hero.contact.company}</span>
-                    </p>
-                  )}
-                  {hero.contact.website && (
-                    <p className="flex items-center gap-1.5">
-                      <span className="h-3 w-3 rounded-full bg-indigo-400/80" />
-                      <a
-                        href={hero.contact.website}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="truncate text-indigo-300 hover:text-indigo-200"
-                      >
-                        {hero.contact.website}
-                      </a>
-                    </p>
-                  )}
-                  {hero.contact.email && (
-                    <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                      <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
-                      <a
-                        href={`mailto:${hero.contact.email}`}
-                        className="hover:underline"
-                      >
-                        {hero.contact.email}
-                      </a>
-                    </p>
-                  )}
-                  {hero.contact.twitter && (
-                    <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                      <span className="h-3 w-3 rounded-full bg-sky-400/80" />
-                      <a
-                        href={`https://twitter.com/${hero.contact.twitter}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:underline"
-                      >
-                        @{hero.contact.twitter}
-                      </a>
-                    </p>
-                  )}
+            {hero.contact &&
+              (hero.contact.company ||
+                hero.contact.website ||
+                hero.contact.email ||
+                hero.contact.twitter) && (
+                <div className="mt-4 border-t border-slate-800/40 pt-3 text-[11px] text-slate-300 dark:text-slate-300">
+                  <div className="space-y-1.5">
+                    {hero.contact.company && (
+                      <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                        <span className="h-3 w-3 rounded-full bg-slate-400/80" />
+                        <span>{hero.contact.company}</span>
+                      </p>
+                    )}
+                    {hero.contact.website && (
+                      <p className="flex items-center gap-1.5">
+                        <span className="h-3 w-3 rounded-full bg-indigo-400/80" />
+                        <a
+                          href={hero.contact.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="truncate text-indigo-300 hover:text-indigo-200"
+                        >
+                          {hero.contact.website}
+                        </a>
+                      </p>
+                    )}
+                    {hero.contact.email && (
+                      <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                        <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
+                        <a
+                          href={`mailto:${hero.contact.email}`}
+                          className="hover:underline"
+                        >
+                          {hero.contact.email}
+                        </a>
+                      </p>
+                    )}
+                    {hero.contact.twitter && (
+                      <p className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                        <span className="h-3 w-3 rounded-full bg-sky-400/80" />
+                        <a
+                          href={`https://twitter.com/${hero.contact.twitter}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline"
+                        >
+                          @{hero.contact.twitter}
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </aside>
       </div>

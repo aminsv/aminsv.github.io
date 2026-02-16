@@ -3,11 +3,26 @@ import siteContent from './siteContent.json'
 import HeroSection from './components/HeroSection'
 import PhilosophySection from './components/PhilosophySection'
 import ProjectsSection from './components/ProjectsSection'
+import StatsSection from './components/StatsSection'
 
 type Theme = 'dark' | 'light'
 
 function App() {
   const { hero, snapshot, philosophy, projects, footer } = siteContent
+  const stats = (siteContent as any).stats as {
+    metrics: {
+      totalRepos: number
+      totalStars: number
+      totalForks: number
+      totalOpenIssues: number
+      languagesUsed: number
+      followers: number
+      following: number
+    }
+    languageDistribution: Array<{ language: string; count: number; percentage: number }>
+    activityByYear: Array<{ year: number; repos: number }>
+    topReposByStars: Array<{ name: string; stars: number; language: string }>
+  } | null | undefined ?? null
 
   const [theme, setTheme] = useState<Theme>('dark')
 
@@ -76,6 +91,14 @@ function App() {
             >
               Projects
             </a>
+            {stats && (
+              <a
+                href="#stats"
+                className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50"
+              >
+                Stats
+              </a>
+            )}
             <a
               href={footer.githubUrl}
               target="_blank"
@@ -130,6 +153,7 @@ function App() {
         <HeroSection hero={hero} snapshot={snapshot} theme={theme} />
         <PhilosophySection philosophy={philosophy} />
         <ProjectsSection projects={projects} />
+        <StatsSection stats={stats} />
       </main>
 
       <footer className={footerClasses}>

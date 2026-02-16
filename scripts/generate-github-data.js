@@ -175,6 +175,28 @@ async function main() {
           ? 'star-then-date'
           : 'date'
 
+  // --- Hero config ---
+  const heroConfig = fileConfig.hero ?? {}
+  const customEyebrow =
+    typeof heroConfig.eyebrow === 'string' && heroConfig.eyebrow.trim()
+      ? heroConfig.eyebrow.trim()
+      : 'Open-source, developer-first profile'
+  const minorInfo =
+    typeof heroConfig.minorInfo === 'string' && heroConfig.minorInfo.trim()
+      ? heroConfig.minorInfo.trim()
+      : null
+
+  // --- Brief info config ---
+  // --- Stats section config (replaces briefInfo) ---
+  const showStats = fileConfig.showStats !== false // default true
+
+  // --- Contact visibility config ---
+  const contactConfig = fileConfig.contact ?? {}
+  const showCompany = contactConfig.showCompany !== false // default true
+  const showEmail = contactConfig.showEmail !== false // default true
+  const showWebsite = contactConfig.showWebsite !== false // default true
+  const showTwitter = contactConfig.showTwitter !== false // default true
+
   const profileUrl =
     profileType === 'org'
       ? `https://api.github.com/orgs/${owner}`
@@ -420,21 +442,70 @@ async function main() {
     },
   ].filter(Boolean)
 
+  // ---------- Calculate stats for visualization ----------
+  const totalForks = reposAll.reduce(
+    (sum, repo) => sum + (repo.fork ? 1 : 0),
+    0,
+  )
+  const totalOpenIssues = reposAll.reduce(
+    (sum, repo) => sum + (repo.open_issues_count ?? 0),
+    0,
+  )
+
+  // Language distribution (top 8 languages)
+  const languageDistribution = Object.entries(languageCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([language, count]) => ({
+      language,
+      count,
+      percentage: Math.round((count / reposAll.length) * 100),
+    }))
+
+  // Repository activity by year (based on last push date)
+  const reposByYear = reposAll.reduce((acc, repo) => {
+    if (repo.pushed_at) {
+      const year = new Date(repo.pushed_at).getFullYear()
+      acc[year] = (acc[year] || 0) + 1
+    }
+    return acc
+  }, /** @type {Record<number, number>} */ ({}))
+
+  const activityByYear = Object.entries(reposByYear)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([year, count]) => ({
+      year: Number(year),
+      repos: count,
+    }))
+    .slice(-5) // Last 5 years
+
+  // Top repositories by stars
+  const topReposByStars = reposAll
+    .slice()
+    .sort((a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0))
+    .slice(0, 5)
+    .map((repo) => ({
+      name: repo.name,
+      stars: repo.stargazers_count ?? 0,
+      language: repo.language || 'Other',
+    }))
+
   const siteContent = {
     hero: {
-      eyebrow: 'Open-source, developer-first profile',
+      eyebrow: customEyebrow,
       title: profile.name || profile.login,
       description: heroDescription,
+      minorInfo: minorInfo,
       avatarUrl: profile.avatar_url,
       primaryCtaLabel: 'View on GitHub',
       primaryCtaHref: profile.html_url,
       caption: 'Data fetched once at build time. No runtime API calls.',
       contact: {
-        email: profile.email,
+        email: showEmail ? profile.email : null,
         location: profile.location,
-        company: profile.company,
-        website: profile.blog,
-        twitter: profile.twitter_username,
+        company: showCompany ? profile.company : null,
+        website: showWebsite ? profile.blog : null,
+        twitter: showTwitter ? profile.twitter_username : null,
       },
     },
     snapshot: {
@@ -453,6 +524,22 @@ async function main() {
         'A selection of repositories from this GitHub profile, captured at build time. Links take you directly to the source on GitHub.',
       repos: featuredReposNormalized,
     },
+    stats: showStats
+      ? {
+          metrics: {
+            totalRepos: profile.public_repos,
+            totalStars: totalStars,
+            totalForks: totalForks,
+            totalOpenIssues: totalOpenIssues,
+            languagesUsed: Object.keys(languageCounts).length,
+            followers: profile.followers,
+            following: profile.following,
+          },
+          languageDistribution: languageDistribution,
+          activityByYear: activityByYear,
+          topReposByStars: topReposByStars,
+        }
+      : null,
     footer: {
       text:
         'This page is generated from GitHub profile data and can be deployed as a fully static site.',
