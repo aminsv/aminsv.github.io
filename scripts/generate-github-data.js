@@ -190,6 +190,35 @@ async function main() {
       return bTime - aTime
     })
 
+  // --- Support external featured repos like "org/repo-name"
+  const externalFeaturedFullNames = featuredReposFromConfig.filter(
+    (name) => typeof name === 'string' && name.includes('/'),
+  )
+
+  let externalFeaturedRepos = []
+  if (externalFeaturedFullNames.length > 0) {
+    const externalResults = await Promise.allSettled(
+      externalFeaturedFullNames.map((fullName) =>
+        fetchJson(
+          `https://api.github.com/repos/${fullName}`,
+          `Featured repo ${fullName}`,
+        ),
+      ),
+    )
+
+    externalFeaturedRepos = externalResults
+      .filter((r) => r.status === 'fulfilled')
+      .map((r) => pickRepoFields(r.value))
+      .filter(Boolean)
+  }
+
+  // Merge external featured repos into main repos, de-duping by id
+  const existingIds = new Set(repos.map((repo) => repo.id))
+  const mergedExternal = externalFeaturedRepos.filter(
+    (repo) => repo && !existingIds.has(repo.id),
+  )
+  const reposAll = [...repos, ...mergedExternal]
+
   const clientConfig = {
     featuredRepos: featuredReposFromConfig,
     listedRepo: {
@@ -199,12 +228,12 @@ async function main() {
   }
 
   // ---------- Build siteContent JSON template used by the React app ----------
-  const totalStars = repos.reduce(
+  const totalStars = reposAll.reduce(
     (sum, repo) => sum + (repo.stargazers_count ?? 0),
     0,
   )
 
-  const languageCounts = repos.reduce((acc, repo) => {
+  const languageCounts = reposAll.reduce((acc, repo) => {
     if (repo.language) {
       acc[repo.language] = (acc[repo.language] ?? 0) + 1
     }
@@ -217,12 +246,13 @@ async function main() {
   const topLanguage = topLanguageEntry ? topLanguageEntry[0] : null
 
   const mostStarredRepo =
-    repos.slice().sort((a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0))[0] ??
-    null
+    reposAll
+      .slice()
+      .sort((a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0))[0] ?? null
 
   const allTopics = Array.from(
     new Set(
-      repos
+      reposAll
         .flatMap((repo) => repo.topics ?? [])
         .filter((topic) => Boolean(topic)),
     ),
@@ -232,11 +262,18 @@ async function main() {
   const featuredReposRaw =
     clientConfig.featuredRepos && clientConfig.featuredRepos.length > 0
       ? clientConfig.featuredRepos
-          .map((name) => repos.find((repo) => repo.name === name))
+          .map((name) => {
+            if (typeof name !== 'string') return null
+            // Support both "repoName" and "owner/repoName"
+            if (name.includes('/')) {
+              return reposAll.find((repo) => repo.full_name === name) ?? null
+            }
+            return reposAll.find((repo) => repo.name === name) ?? null
+          })
           .filter(Boolean)
       : []
 
-  const remainingReposRaw = repos.filter(
+  const remainingReposRaw = reposAll.filter(
     (repo) => !featuredReposRaw.some((f) => f.id === repo.id),
   )
 
@@ -365,7 +402,7 @@ export const githubProfileType = ${JSON.stringify(profileType)} as const;
 
 export const githubProfile = ${JSON.stringify(profile, null, 2)} as const;
 
-export const githubRepos = ${JSON.stringify(repos, null, 2)} as const;
+export const githubRepos = ${JSON.stringify(reposAll, null, 2)} as const;
 
 export const githubConfig = ${JSON.stringify(clientConfig, null, 2)} as const;
 
