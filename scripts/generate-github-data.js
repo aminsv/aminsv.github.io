@@ -93,6 +93,35 @@ async function fetchJson(url, label, token) {
   return res.json()
 }
 
+async function fetchGraphQL(query, variables, token) {
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'damru-site-build-script',
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables }),
+  })
+
+  if (!res.ok) {
+    throw new Error(`GraphQL request failed with ${res.status} ${res.statusText}`)
+  }
+
+  const json = await res.json()
+  if (json.errors) {
+    throw new Error(`GraphQL errors: ${JSON.stringify(json.errors)}`)
+  }
+
+  return json.data
+}
+
 async function main() {
   // Load .env file if it exists
   const envPath = path.join(rootDir, '.env')
@@ -183,6 +212,19 @@ async function main() {
       : null) ||
     null
 
+  // Debug: Log token status (without exposing the actual token)
+  if (githubToken) {
+    console.log(
+      `GitHub token found: ${githubToken.substring(0, 7)}... (from ${
+        process.env.GITHUB_TOKEN ? '.env or environment' : 'config file'
+      })`,
+    )
+  } else {
+    console.log(
+      'No GitHub token found. Set GITHUB_TOKEN in .env or githubToken in config to access private repos and commit activity.',
+    )
+  }
+
   const featuredReposFromConfig = Array.isArray(fileConfig.featuredRepos)
     ? fileConfig.featuredRepos.filter((name) => typeof name === 'string')
     : []
@@ -226,8 +268,13 @@ async function main() {
       : null
 
   // --- Brief info config ---
-  // --- Stats section config (replaces briefInfo) ---
+  // --- Stats section config ---
   const showStats = fileConfig.showStats !== false // default true
+  const statsConfig = fileConfig.stats ?? {}
+  const showLanguageChart = statsConfig.showLanguageChart !== false // default true
+  const showRepoActivityChart = statsConfig.showRepoActivityChart !== false // default true
+  const showCommitActivityChart = statsConfig.showCommitActivityChart !== false // default true
+  const showTopReposChart = statsConfig.showTopReposChart !== false // default true
 
   // --- Contact visibility config ---
   const contactConfig = fileConfig.contact ?? {}
@@ -262,6 +309,101 @@ async function main() {
     fetchJson(profileUrl, 'Profile', githubToken),
     fetchJson(reposUrl, 'Repos', githubToken),
   ])
+
+  // Fetch commit activity via GraphQL (only for users, requires token)
+  // Note: GitHub GraphQL API only allows 1 year per query, so we fetch each year separately
+  let commitActivityByYear = []
+  if (
+    profileType === 'user' &&
+    githubToken &&
+    showCommitActivityChart &&
+    showStats
+  ) {
+    try {
+      const currentYear = new Date().getFullYear()
+      const startYear = currentYear - 4 // Last 5 years
+      const query = `
+        query($login: String!, $from: DateTime!, $to: DateTime!) {
+          user(login: $login) {
+            contributionsCollection(from: $from, to: $to) {
+              contributionCalendar {
+                totalContributions
+                weeks {
+                  contributionDays {
+                    date
+                    contributionCount
+                  }
+                }
+              }
+            }
+          }
+        }
+      `
+      const commitsByYear = {}
+
+      // Fetch each year separately (GitHub API limitation: max 1 year per query)
+      const yearPromises = []
+      for (let year = startYear; year <= currentYear; year++) {
+        const variables = {
+          login: owner,
+          from: `${year}-01-01T00:00:00Z`,
+          to: `${year}-12-31T23:59:59Z`,
+        }
+        yearPromises.push(
+          fetchGraphQL(query, variables, githubToken)
+            .then((graphqlData) => {
+              if (
+                graphqlData?.user?.contributionsCollection?.contributionCalendar
+              ) {
+                const calendar =
+                  graphqlData.user.contributionsCollection.contributionCalendar
+                let yearCommits = 0
+
+                for (const week of calendar.weeks) {
+                  for (const day of week.contributionDays) {
+                    if (day.contributionCount > 0) {
+                      yearCommits += day.contributionCount
+                    }
+                  }
+                }
+
+                if (yearCommits > 0) {
+                  commitsByYear[year] = yearCommits
+                }
+              }
+            })
+            .catch((err) => {
+              console.warn(
+                `Warning: Could not fetch commit activity for year ${year}: ${err.message}`,
+              )
+            }),
+        )
+      }
+
+      await Promise.allSettled(yearPromises)
+
+      commitActivityByYear = Object.entries(commitsByYear)
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(([year, commits]) => ({
+          year: Number(year),
+          commits: Number(commits),
+        }))
+
+      if (commitActivityByYear.length > 0) {
+        console.log(
+          `Fetched commit activity for ${commitActivityByYear.length} year(s)`,
+        )
+      }
+    } catch (error) {
+      console.warn(
+        `Warning: Could not fetch commit activity: ${error.message}. Skipping commit activity chart.`,
+      )
+    }
+  } else if (profileType === 'user' && showCommitActivityChart && showStats) {
+    console.log(
+      'Skipping commit activity: GitHub token required (set GITHUB_TOKEN in .env or githubToken in config)',
+    )
+  }
 
   const profile = pickProfileFields(profileJson, owner, profileType)
   const reposRaw = Array.isArray(reposJson) ? reposJson : []
@@ -597,9 +739,10 @@ async function main() {
             followers: profile.followers,
             following: profile.following,
           },
-          languageDistribution: languageDistribution,
-          activityByYear: activityByYear,
-          topReposByStars: topReposByStars,
+          languageDistribution: showLanguageChart ? languageDistribution : [],
+          activityByYear: showRepoActivityChart ? activityByYear : [],
+          commitActivityByYear: showCommitActivityChart ? commitActivityByYear : [],
+          topReposByStars: showTopReposChart ? topReposByStars : [],
         }
       : null,
     footer: {

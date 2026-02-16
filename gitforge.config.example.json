@@ -16,6 +16,12 @@
     "minorInfo": "Brief tagline or quick intro that appears in the hero section."
   },
   "showStats": true,
+  "stats": {
+    "showLanguageChart": true,
+    "showRepoActivityChart": true,
+    "showCommitActivityChart": true,
+    "showTopReposChart": false
+  },
   "contact": {
     "showCompany": true,
     "showEmail": true,

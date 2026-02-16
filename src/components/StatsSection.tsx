@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts'
 
@@ -21,6 +20,11 @@ type LanguageData = {
 type ActivityData = {
   year: number
   repos: number
+}
+
+type CommitActivityData = {
+  year: number
+  commits: number
 }
 
 type RepoStarsData = {
@@ -42,6 +46,7 @@ type Stats = {
   }
   languageDistribution: LanguageData[]
   activityByYear: ActivityData[]
+  commitActivityByYear?: CommitActivityData[]
   topReposByStars: RepoStarsData[]
 }
 
@@ -66,7 +71,13 @@ function StatsSection({ stats }: StatsSectionProps) {
     return null
   }
 
-  const { metrics, languageDistribution, activityByYear, topReposByStars } = stats
+  const {
+    metrics,
+    languageDistribution,
+    activityByYear,
+    commitActivityByYear,
+    topReposByStars,
+  } = stats
 
   return (
     <section
@@ -146,7 +157,7 @@ function StatsSection({ stats }: StatsSectionProps) {
                       `${language} (${percentage}%)`
                     }
                   >
-                    {languageDistribution.map((entry, index) => (
+                    {languageDistribution.map((_entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={CHART_COLORS[index % CHART_COLORS.length]}
@@ -196,6 +207,43 @@ function StatsSection({ stats }: StatsSectionProps) {
                   <Bar
                     dataKey="repos"
                     fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Commit Activity by Year Bar Chart */}
+          {commitActivityByYear && commitActivityByYear.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-gradient-to-b dark:from-[#171824] dark:to-[#10111b]">
+              <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-50">
+                Commit Activity (Last 5 Years)
+              </h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={commitActivityByYear}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#475569"
+                    opacity={0.2}
+                  />
+                  <XAxis
+                    dataKey="year"
+                    stroke="#64748b"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#fff',
+                    }}
+                  />
+                  <Bar
+                    dataKey="commits"
+                    fill="#10b981"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
