@@ -2,6 +2,8 @@
   "//_comment": "Copy this file to gitforge.config.json and adjust values for your GitHub profile.",
   "githubOwner": "usedamru",
   "profileType": "org",
+  "githubToken": null,
+  "//_githubToken_comment": "Optional: GitHub personal access token. Can also be set via GITHUB_TOKEN in .env file. Includes private repos in language/stats calculations. Private repos will NOT be displayed, only used for accurate skill representation.",
   "featuredRepos": [
     "sql2nosql"
   ],

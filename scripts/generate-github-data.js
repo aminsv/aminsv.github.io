@@ -68,18 +68,23 @@ function pickRepoFields(json) {
     archived: json.archived ?? false,
     disabled: json.disabled ?? false,
     fork: json.fork ?? false,
+    private: json.private ?? false,
     pushed_at: json.pushed_at,
     updated_at: json.updated_at,
   }
 }
 
-async function fetchJson(url, label) {
-  const res = await fetch(url, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'User-Agent': 'damru-site-build-script',
-    },
-  })
+async function fetchJson(url, label, token) {
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'damru-site-build-script',
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(url, { headers })
 
   if (!res.ok) {
     throw new Error(`${label} request failed with ${res.status} ${res.statusText}`)
@@ -89,6 +94,31 @@ async function fetchJson(url, label) {
 }
 
 async function main() {
+  // Load .env file if it exists
+  const envPath = path.join(rootDir, '.env')
+  try {
+    const envContent = await fs.readFile(envPath, 'utf8')
+    for (const line of envContent.split('\n')) {
+      const trimmed = line.trim()
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [key, ...valueParts] = trimmed.split('=')
+        if (key && valueParts.length > 0) {
+          const value = valueParts.join('=').trim()
+          // Remove quotes if present
+          const cleanValue = value.replace(/^["']|["']$/g, '')
+          if (!process.env[key]) {
+            process.env[key] = cleanValue
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // .env file doesn't exist or can't be read - that's fine
+    if (error && error.code !== 'ENOENT') {
+      console.warn('Warning: Could not read .env file:', error.message)
+    }
+  }
+
   let fileConfig = {}
 
   try {
@@ -143,6 +173,15 @@ async function main() {
   ).toLowerCase()
 
   const profileType = profileTypeEnv === 'user' ? 'user' : 'org'
+
+  // --- GitHub token for accessing private repos (optional) ---
+  // Priority: process.env.GITHUB_TOKEN > fileConfig.githubToken > null
+  const githubToken =
+    (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN.trim()) ||
+    (fileConfig.githubToken && typeof fileConfig.githubToken === 'string'
+      ? fileConfig.githubToken.trim()
+      : null) ||
+    null
 
   const featuredReposFromConfig = Array.isArray(fileConfig.featuredRepos)
     ? fileConfig.featuredRepos.filter((name) => typeof name === 'string')
@@ -202,31 +241,42 @@ async function main() {
       ? `https://api.github.com/orgs/${owner}`
       : `https://api.github.com/users/${owner}`
 
+  // Fetch all repos (including private) if token is provided, otherwise only public
   const reposUrl =
     profileType === 'org'
-      ? `https://api.github.com/orgs/${owner}/repos?per_page=50&sort=updated`
-      : `https://api.github.com/users/${owner}/repos?per_page=50&sort=updated`
+      ? `https://api.github.com/orgs/${owner}/repos?per_page=100&sort=updated${
+          githubToken ? '&type=all' : ''
+        }`
+      : `https://api.github.com/users/${owner}/repos?per_page=100&sort=updated${
+          githubToken ? '&type=all' : ''
+        }`
 
   console.log(
     `Fetching GitHub data for ${profileType} "${owner}" from:\n  ${profileUrl}\n  ${reposUrl}`,
   )
+  if (githubToken) {
+    console.log('Using GitHub token - will include private repos in stats calculations')
+  }
 
   const [profileJson, reposJson] = await Promise.all([
-    fetchJson(profileUrl, 'Profile'),
-    fetchJson(reposUrl, 'Repos'),
+    fetchJson(profileUrl, 'Profile', githubToken),
+    fetchJson(reposUrl, 'Repos', githubToken),
   ])
 
   const profile = pickProfileFields(profileJson, owner, profileType)
   const reposRaw = Array.isArray(reposJson) ? reposJson : []
-  const repos = reposRaw
-    .map(pickRepoFields)
-    .filter(Boolean)
-    // Keep the most recently pushed first by default
-    .sort((a, b) => {
-      const aTime = a?.pushed_at ? Date.parse(a.pushed_at) : 0
-      const bTime = b?.pushed_at ? Date.parse(b.pushed_at) : 0
-      return bTime - aTime
-    })
+  const reposAllRaw = reposRaw.map(pickRepoFields).filter(Boolean)
+
+  // Separate public repos (for display) from all repos (for stats)
+  const reposPublic = reposAllRaw.filter((repo) => !repo.private)
+  const reposAll = reposAllRaw
+
+  // Sort public repos for display (most recently pushed first)
+  const repos = reposPublic.sort((a, b) => {
+    const aTime = a?.pushed_at ? Date.parse(a.pushed_at) : 0
+    const bTime = b?.pushed_at ? Date.parse(b.pushed_at) : 0
+    return bTime - aTime
+  })
 
   // --- Support external featured repos like "org/repo-name"
   const externalFeaturedFullNames = featuredReposFromConfig.filter(
@@ -240,6 +290,7 @@ async function main() {
         fetchJson(
           `https://api.github.com/repos/${fullName}`,
           `Featured repo ${fullName}`,
+          githubToken,
         ),
       ),
     )
@@ -250,12 +301,19 @@ async function main() {
       .filter(Boolean)
   }
 
-  // Merge external featured repos into main repos, de-duping by id
-  const existingIds = new Set(repos.map((repo) => repo.id))
+  // Merge external featured repos into public repos (for display), de-duping by id
+  const existingPublicIds = new Set(repos.map((repo) => repo.id))
   const mergedExternal = externalFeaturedRepos.filter(
-    (repo) => repo && !existingIds.has(repo.id),
+    (repo) => repo && !existingPublicIds.has(repo.id),
   )
-  const reposAll = [...repos, ...mergedExternal]
+  const reposForDisplay = [...repos, ...mergedExternal]
+
+  // Add external repos to all repos for stats (if not already present)
+  const existingAllIds = new Set(reposAll.map((repo) => repo.id))
+  const externalForStats = externalFeaturedRepos.filter(
+    (repo) => repo && !existingAllIds.has(repo.id),
+  )
+  const reposAllForStats = [...reposAll, ...externalForStats]
 
   const clientConfig = {
     featuredRepos: featuredReposFromConfig,
@@ -266,12 +324,13 @@ async function main() {
   }
 
   // ---------- Build siteContent JSON template used by the React app ----------
-  const totalStars = reposAll.reduce(
+  // Use ALL repos (including private) for stats/language calculations
+  const totalStars = reposAllForStats.reduce(
     (sum, repo) => sum + (repo.stargazers_count ?? 0),
     0,
   )
 
-  const languageCounts = reposAll.reduce((acc, repo) => {
+  const languageCounts = reposAllForStats.reduce((acc, repo) => {
     if (repo.language) {
       acc[repo.language] = (acc[repo.language] ?? 0) + 1
     }
@@ -284,19 +343,20 @@ async function main() {
   const topLanguage = topLanguageEntry ? topLanguageEntry[0] : null
 
   const mostStarredRepo =
-    reposAll
+    reposAllForStats
       .slice()
       .sort((a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0))[0] ?? null
 
   const allTopics = Array.from(
     new Set(
-      reposAll
+      reposAllForStats
         .flatMap((repo) => repo.topics ?? [])
         .filter((topic) => Boolean(topic)),
     ),
   )
   const topTopics = allTopics.slice(0, 5)
 
+  // Use PUBLIC repos only for display/featured repos
   const featuredReposRaw =
     clientConfig.featuredRepos && clientConfig.featuredRepos.length > 0
       ? clientConfig.featuredRepos
@@ -304,14 +364,14 @@ async function main() {
             if (typeof name !== 'string') return null
             // Support both "repoName" and "owner/repoName"
             if (name.includes('/')) {
-              return reposAll.find((repo) => repo.full_name === name) ?? null
+              return reposForDisplay.find((repo) => repo.full_name === name) ?? null
             }
-            return reposAll.find((repo) => repo.name === name) ?? null
+            return reposForDisplay.find((repo) => repo.name === name) ?? null
           })
           .filter(Boolean)
       : []
 
-  const remainingReposRaw = reposAll.filter(
+  const remainingReposRaw = reposForDisplay.filter(
     (repo) => !featuredReposRaw.some((f) => f.id === repo.id),
   )
 
@@ -443,27 +503,28 @@ async function main() {
   ].filter(Boolean)
 
   // ---------- Calculate stats for visualization ----------
-  const totalForks = reposAll.reduce(
+  // Use ALL repos (including private) for accurate stats
+  const totalForks = reposAllForStats.reduce(
     (sum, repo) => sum + (repo.fork ? 1 : 0),
     0,
   )
-  const totalOpenIssues = reposAll.reduce(
+  const totalOpenIssues = reposAllForStats.reduce(
     (sum, repo) => sum + (repo.open_issues_count ?? 0),
     0,
   )
 
-  // Language distribution (top 8 languages)
+  // Language distribution (top 8 languages) - includes private repos
   const languageDistribution = Object.entries(languageCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([language, count]) => ({
       language,
       count,
-      percentage: Math.round((count / reposAll.length) * 100),
+      percentage: Math.round((count / reposAllForStats.length) * 100),
     }))
 
-  // Repository activity by year (based on last push date)
-  const reposByYear = reposAll.reduce((acc, repo) => {
+  // Repository activity by year (based on last push date) - includes private repos
+  const reposByYear = reposAllForStats.reduce((acc, repo) => {
     if (repo.pushed_at) {
       const year = new Date(repo.pushed_at).getFullYear()
       acc[year] = (acc[year] || 0) + 1
@@ -479,8 +540,8 @@ async function main() {
     }))
     .slice(-5) // Last 5 years
 
-  // Top repositories by stars
-  const topReposByStars = reposAll
+  // Top repositories by stars - only PUBLIC repos for display
+  const topReposByStars = reposForDisplay
     .slice()
     .sort((a, b) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0))
     .slice(0, 5)
@@ -527,7 +588,8 @@ async function main() {
     stats: showStats
       ? {
           metrics: {
-            totalRepos: profile.public_repos,
+            totalRepos: reposAllForStats.length, // Total including private
+            publicRepos: profile.public_repos, // Public only
             totalStars: totalStars,
             totalForks: totalForks,
             totalOpenIssues: totalOpenIssues,

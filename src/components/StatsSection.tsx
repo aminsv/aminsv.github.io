@@ -32,6 +32,7 @@ type RepoStarsData = {
 type Stats = {
   metrics: {
     totalRepos: number
+    publicRepos?: number
     totalStars: number
     totalForks: number
     totalOpenIssues: number
@@ -93,7 +94,9 @@ function StatsSection({ stats }: StatsSectionProps) {
               {metrics.totalRepos}
             </div>
             <div className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-              Repositories
+              {metrics.publicRepos !== undefined && metrics.publicRepos < metrics.totalRepos
+                ? `Total Repos (${metrics.publicRepos} public)`
+                : 'Repositories'}
             </div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-white/10 dark:bg-gradient-to-b dark:from-[#171824] dark:to-[#10111b]">
