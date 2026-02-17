@@ -19,6 +19,7 @@ type Hero = {
 type Snapshot = {
   title: string
   items: string[]
+  subtitle?: string | null
 }
 
 type HeroSectionProps = {
@@ -117,7 +118,8 @@ function HeroSection({ hero, snapshot, theme }: HeroSectionProps) {
                     isDark ? 'text-slate-400' : 'text-slate-600'
                   }`}
                 >
-                  Snapshot generated from GitHub at build time.
+                  {snapshot.subtitle ??
+                    'Snapshot generated from GitHub at build time.'}
                 </p>
               </div>
             </div>

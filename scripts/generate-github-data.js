@@ -498,6 +498,26 @@ async function main() {
   )
   const topTopics = allTopics.slice(0, 5)
 
+  // Derive a compact "top skills" summary from languages & topics
+  const topLanguagesList = Object.entries(languageCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([language]) => language)
+
+  const topLanguageNames = topLanguagesList.slice(0, 3)
+  const topTopicNames = topTopics.slice(0, 3)
+
+  let snapshotSubtitle = null
+  if (topLanguageNames.length > 0 || topTopicNames.length > 0) {
+    const parts = []
+    if (topLanguageNames.length > 0) {
+      parts.push(topLanguageNames.join(', '))
+    }
+    if (topTopicNames.length > 0) {
+      parts.push(topTopicNames.join(', '))
+    }
+    snapshotSubtitle = `${parts.join(' · ')}`
+  }
+
   // Use PUBLIC repos only for display/featured repos
   const featuredReposRaw =
     clientConfig.featuredRepos && clientConfig.featuredRepos.length > 0
@@ -712,8 +732,9 @@ async function main() {
       },
     },
     snapshot: {
-      title: 'GitHub snapshot',
+      title: 'Top skills',
       items: snapshotItems,
+      subtitle: snapshotSubtitle,
     },
     philosophy: {
       title: 'Philosophy',
