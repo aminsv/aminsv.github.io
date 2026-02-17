@@ -99,6 +99,17 @@ function App() {
       ? 'border-t border-slate-800 bg-gradient-to-b from-[#111120] to-[#050509] py-6 text-xs text-slate-400'
       : 'border-t border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 py-6 text-xs text-slate-600'
 
+  const navInitials = (() => {
+    const name = (hero.title || '').trim()
+    if (!name) return '?'
+    const parts = name.split(/\s+/).filter(Boolean)
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase()
+    }
+    // Use first letter of first two words (e.g., \"Jalaj Dhooria\" -> \"JD\")
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
+  })()
+
   return (
     <div className={rootClasses}>
       <header className={headerClasses}>
@@ -108,20 +119,8 @@ function App() {
             className="inline-flex items-center gap-2 no-underline text-slate-900 dark:text-slate-100"
             aria-label={`${hero.title} home`}
           >
-            {hero.avatarUrl ? (
-              <img
-                src={hero.avatarUrl}
-                alt={`${hero.title} avatar`}
-                className="h-8 w-8 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-                aria-hidden="true"
-              />
-            ) : (
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-sm font-semibold text-[#050509]" aria-hidden="true">
-                {(hero.title ?? '?').charAt(0).toUpperCase()}
-              </span>
-            )}
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-900 dark:text-slate-200">
-              {hero.title}
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-xs font-semibold text-[#050509]" aria-hidden="true">
+              {navInitials}
             </span>
           </a>
           <nav
