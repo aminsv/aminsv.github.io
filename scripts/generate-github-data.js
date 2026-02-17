@@ -732,7 +732,7 @@ async function main() {
       avatarUrl: profile.avatar_url,
       primaryCtaLabel: 'View on GitHub',
       primaryCtaHref: profile.html_url,
-      caption: 'Data fetched once at build time. No runtime API calls.',
+      caption: '',
       contact: {
         email: showEmail ? profile.email : null,
         location: profile.location,
