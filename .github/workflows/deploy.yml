@@ -5,6 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    # Run once a day at 03:00 UTC to refresh GitHub data and redeploy
+    - cron: '0 3 * * *'
 
 permissions:
   contents: read
