@@ -1,0 +1,67 @@
+name: Deploy profile site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        env:
+          # Optional: use GitHub Actions token for higher rate limits
+          # and to include private repos in stats if desired.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Default to this repo's owner as the GitHub profile target.
+          # This means in a repo named "yourusername.github.io" it will
+          # automatically build the site for "yourusername" without any
+          # gitforge.config.json being tracked.
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_PROFILE_TYPE: user
+        run: pnpm build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
