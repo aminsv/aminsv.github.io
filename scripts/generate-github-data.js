@@ -665,7 +665,7 @@ async function main() {
   ].filter(Boolean)
 
   // ---------- Calculate stats for visualization ----------
-  // Use ALL repos (including private) for accurate stats
+  // Use ALL repos (including private) for aggregate stats
   const totalForks = reposAllForStats.reduce(
     (sum, repo) => sum + (repo.fork ? 1 : 0),
     0,
@@ -676,13 +676,23 @@ async function main() {
   )
 
   // Language distribution (top 8 languages) - includes private repos
+  // Percentages are computed over repos that have a language set,
+  // so language percentages feel intuitive and sum close to 100%.
+  const totalReposWithLanguage = Object.values(languageCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  )
+
   const languageDistribution = Object.entries(languageCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([language, count]) => ({
       language,
       count,
-      percentage: Math.round((count / reposAllForStats.length) * 100),
+      percentage:
+        totalReposWithLanguage > 0
+          ? Math.round((count / totalReposWithLanguage) * 100)
+          : 0,
     }))
 
   // Repository activity by year (based on last push date) - includes private repos

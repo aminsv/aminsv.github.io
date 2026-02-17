@@ -100,6 +100,34 @@ The React app (`src/App.tsx`) reads **only** from `src/siteContent.json`, so:
   - Either treat JSON as “generated, don’t edit”, or
   - Keep a copy / commit your version and regenerate only when needed.
 
+### How stats are computed
+
+- **Language distribution** (used for the language pie chart):
+
+  - For each repo we read GitHub’s primary `language` field.
+  - We count how many repos use each language:
+
+    \[
+    \text{count(language)} = \#\{\text{repos with that primary language}\}
+    \]
+
+  - We only consider repos that have a language set. Let \(\text{total\_with\_language}\) be the sum of counts over all languages:
+
+    \[
+    \text{total\_with\_language} = \sum_{\ell} \text{count}(\ell)
+    \]
+
+  - The percentage for each language is:
+
+    \[
+    \text{percentage}(\ell) =
+      \text{round}\left(
+        \frac{\text{count}(\ell)}{\text{total\_with\_language}} \times 100
+      \right)
+    \]
+
+  - Only the top 8 languages (by `count`) are shown in the chart.
+
 Key sections in `siteContent.json`:
 
 - `hero`: title, subtitle, CTA, caption.
