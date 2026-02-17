@@ -1,12 +1,10 @@
 # gitforge
 
-Generate a polished, static GitHub profile site from any user or organization — using a single CLI command.
+Generate a polished, static GitHub profile site from any user or organization — using a simple CLI (npm or local script).
 
 - **Input**: a GitHub username/org and (optionally) a small config file.
 - **Output**: a Vite + React + TypeScript site wired to static data generated from the GitHub API.
 - **No runtime API calls**: all data is fetched once at build time and written into JSON/TS files.
-
-> This package is designed to be run via `npx`/`pnpm dlx` or as a local dev dependency — no global install required.
 
 ---
 
@@ -36,9 +34,11 @@ pnpm install   # or: npm install
 
 ### 3. Generate content from GitHub
 
-You can either pass the owner on the CLI or via config.
+You can either use the **npm CLI** (once published) or the **local script** inside this repo.
 
-#### Option A – CLI only
+#### Option A – npm CLI (recommended once published)
+
+Using `npx`:
 
 ```bash
 # user profile
@@ -54,7 +54,7 @@ With `pnpm`:
 pnpm dlx gitforge amide-init --type user
 ```
 
-#### Option B – Config file
+#### Option B – Config file (CLI or local)
 
 1. Copy the example:
 
@@ -79,7 +79,11 @@ cp gitforge.config.example.json gitforge.config.json
 3. Run the generator (no args needed; it reads the config):
 
 ```bash
+# npm CLI (once published)
 npx gitforge
+
+# or, if you've cloned this repo
+pnpm generate:github
 ```
 
 > Precedence for owner/type: CLI args → env vars → `gitforge.config.json` → defaults.
@@ -184,15 +188,15 @@ If you omit both, `gitforge` falls back to:
 ### Examples
 
 ```bash
-# CLI only
-gitforge steipete --type user
+# CLI only (npm CLI)
+npx gitforge steipete --type user
 
 # With pnpm (no global install)
 pnpm dlx gitforge steipete --type user
 
 # With config file only
 cp gitforge.config.example.json gitforge.config.json
-gitforge
+npx gitforge
 ```
 
 ---
