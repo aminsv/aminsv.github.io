@@ -204,24 +204,45 @@ async function main() {
   const profileType = profileTypeEnv === 'user' ? 'user' : 'org'
 
   // --- GitHub token for accessing private repos (optional) ---
-  // Priority: process.env.GITHUB_TOKEN > fileConfig.githubToken > null
-  const githubToken =
-    (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN.trim()) ||
-    (fileConfig.githubToken && typeof fileConfig.githubToken === 'string'
+  //
+  // Sources (in order of preference):
+  // 1. fileConfig.githubToken (explicit, user-controlled)
+  // 2. process.env.GITHUB_TOKEN *only* when it looks like a personal token
+  //    (ghp_... or github_pat_...), NOT the Actions default ghs_ token
+  //
+  // This avoids 401s when the default GitHub Actions GITHUB_TOKEN does not
+  // have permission to call certain REST/GraphQL APIs, while still letting
+  // users opt in by adding a real PAT as a secret.
+  const rawEnvToken = process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN.trim()
+  const envLooksLikePat =
+    !!rawEnvToken &&
+    (rawEnvToken.startsWith('ghp_') || rawEnvToken.startsWith('github_pat_'))
+
+  const configToken =
+    fileConfig.githubToken && typeof fileConfig.githubToken === 'string'
       ? fileConfig.githubToken.trim()
-      : null) ||
-    null
+      : null
+
+  const githubToken = configToken || (envLooksLikePat ? rawEnvToken : null)
 
   // Debug: Log token status (without exposing the actual token)
   if (githubToken) {
+    const source = configToken
+      ? 'config file (gitforge.config.json)'
+      : 'environment (GITHUB_TOKEN)'
     console.log(
-      `GitHub token found: ${githubToken.substring(0, 7)}... (from ${
-        process.env.GITHUB_TOKEN ? '.env or environment' : 'config file'
-      })`,
+      `GitHub token found: ${githubToken.substring(0, 7)}... (from ${source})`,
+    )
+  } else if (rawEnvToken && !envLooksLikePat) {
+    console.log(
+      'Ignoring default GitHub Actions GITHUB_TOKEN for API auth; using unauthenticated requests instead. ' +
+        'To enable private-repo stats and higher limits, add a personal access token (ghp_... or github_pat_...) ' +
+        'as the GITHUB_TOKEN secret or set githubToken in gitforge.config.json.',
     )
   } else {
     console.log(
-      'No GitHub token found. Set GITHUB_TOKEN in .env or githubToken in config to access private repos and commit activity.',
+      'No GitHub token found. Using unauthenticated GitHub API requests. ' +
+        'To enable private-repo stats and higher limits, add a personal access token as GITHUB_TOKEN or set githubToken in gitforge.config.json.',
     )
   }
 
