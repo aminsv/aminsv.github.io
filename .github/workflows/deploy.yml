@@ -51,9 +51,10 @@ jobs:
           GITHUB_OWNER: ${{ github.repository_owner }}
           GITHUB_PROFILE_TYPE: user
           # Set Vite base path for GitHub Pages:
-          # - user site  (username.github.io)          -> '/'
+          # - user site    (username.github.io)        -> '/'
           # - project site (username.github.io/repo)   -> '/repo/'
-          VITE_BASE: ${{ github.repository_owner == github.event.repository.name && '/' || format('/{0}/', github.event.repository.name) }}
+          # Detect user site by repo name ending with ".github.io".
+          VITE_BASE: ${{ endsWith(github.event.repository.name, '.github.io') && '/' || format('/{0}/', github.event.repository.name) }}
         run: pnpm build
 
       - name: Upload Pages artifact
