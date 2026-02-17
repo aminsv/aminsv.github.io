@@ -1,6 +1,6 @@
 # gitforge
 
-Generate a polished, static GitHub profile site from any user or organization — using a simple CLI (npm or local script).
+Generate a polished, static GitHub profile site from any user or organization — using a simple local generator script.
 
 - **Input**: a GitHub username/org and (optionally) a small config file.
 - **Output**: a Vite + React + TypeScript site wired to static data generated from the GitHub API.
@@ -8,53 +8,79 @@ Generate a polished, static GitHub profile site from any user or organization �
 
 ---
 
-## Quick start
+## Quick start (fork & deploy)
 
-### 1. Create a new project directory
+### 1. Fork & deploy (no local setup)
 
-In an empty folder:
+**Recommended for most users:**
+
+1. Fork this repo to your GitHub account.
+2. (Optional but recommended) Rename the fork to `yourusername.github.io` if you want the site at the root:
+   - `Settings → General → Repository name`
+3. GitHub Actions will:
+   - Run the generator using your GitHub username as `GITHUB_OWNER`.
+   - Build the site.
+   - Deploy to GitHub Pages.
+
+You’ll get a live site at:
+
+- `https://yourusername.github.io/` if the repo is named `yourusername.github.io`
+- `https://yourusername.github.io/gitforge/` if the repo is named `gitforge`
+
+The scheduled workflow also runs daily to refresh your GitHub data and stats.
+
+### GitHub token (recommended)
+
+By default, the generator uses the built‑in `GITHUB_TOKEN` provided by GitHub Actions:
+
+- This is already wired in the workflow:
+
+  ```yaml
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GITHUB_OWNER: ${{ github.repository_owner }}
+    GITHUB_PROFILE_TYPE: user
+  ```
+
+- This is usually enough for:
+  - Higher rate limits than anonymous requests.
+  - Access to public profile + repos.
+
+If you want to include **private repos** in stats (they are only used for aggregates, never shown as projects), you can:
+
+- Create a **personal access token** with `repo` scope.
+- Add it as a secret named `GITHUB_TOKEN` in:
+  - **Settings → Secrets and variables → Actions → New repository secret**.
+- The workflow will automatically use that instead of the default token.
+
+---
+
+## Local usage (optional)
+
+If you want to run it locally or customize more deeply:
+
+### 1. Clone & install
 
 ```bash
-mkdir my-profile && cd my-profile
-```
-
-### 2. Initialize from this template (recommended for now)
-
-Until we add full scaffolding, the simplest flow is:
-
-```bash
-# clone or copy this repo once as a starting template
 git clone https://github.com/usedamru/gitforge.git .
-
-# install deps
 pnpm install   # or: npm install
 ```
 
-*(When `gitforge` is published with scaffolding, this step will be replaced with a single `npx gitforge init`.)*
+### 2. Generate content from GitHub
 
-### 3. Generate content from GitHub
+You can either pass the owner on the CLI or via config.
 
-You can either use the **npm CLI** (once published) or the **local script** inside this repo.
-
-#### Option A – npm CLI (recommended once published)
-
-Using `npx`:
+#### Option A – CLI only (local script)
 
 ```bash
 # user profile
-npx gitforge amide-init --type user
+pnpm generate:github amide-init --type user
 
 # organization
-npx gitforge usedamru --type org
+pnpm generate:github usedamru --type org
 ```
 
-With `pnpm`:
-
-```bash
-pnpm dlx gitforge amide-init --type user
-```
-
-#### Option B – Config file (CLI or local)
+#### Option B – Config file
 
 1. Copy the example:
 
@@ -79,10 +105,6 @@ cp gitforge.config.example.json gitforge.config.json
 3. Run the generator (no args needed; it reads the config):
 
 ```bash
-# npm CLI (once published)
-npx gitforge
-
-# or, if you've cloned this repo
 pnpm generate:github
 ```
 
@@ -188,15 +210,12 @@ If you omit both, `gitforge` falls back to:
 ### Examples
 
 ```bash
-# CLI only (npm CLI)
-npx gitforge steipete --type user
-
-# With pnpm (no global install)
-pnpm dlx gitforge steipete --type user
+# CLI only (local)
+pnpm generate:github steipete --type user
 
 # With config file only
 cp gitforge.config.example.json gitforge.config.json
-npx gitforge
+pnpm generate:github
 ```
 
 ---

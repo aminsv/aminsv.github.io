@@ -1,11 +1,8 @@
 {
   "name": "gitforge",
-  "private": false,
+  "private": true,
   "version": "0.1.0",
   "type": "module",
-  "bin": {
-    "gitforge": "scripts/generate-github-data.js"
-  },
   "scripts": {
     "dev": "vite",
     "generate:github": "node scripts/generate-github-data.js",
