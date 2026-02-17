@@ -5,6 +5,7 @@ Generate a polished, static GitHub profile site from any user or organization â€
 - **Input**: a GitHub username/org and (optionally) a small config file.
 - **Output**: a Vite + React + TypeScript site wired to static data generated from the GitHub API.
 - **No runtime API calls**: all data is fetched once at build time and written into JSON/TS files.
+- **License**: MIT (see `LICENSE`).
 
 ---
 
