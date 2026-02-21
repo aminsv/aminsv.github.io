@@ -2,7 +2,8 @@
   "githubOwner": "amide-init",
   "profileType": "user",
   "featuredRepos": [
-    "gitfolio"
+    "gitfolio",
+    "usedamru/sql2nosql"
   ],
   "listedRepo": {
     "count": 4,
