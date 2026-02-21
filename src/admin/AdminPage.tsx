@@ -27,7 +27,7 @@ function AdminPage() {
   if (showLogin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 p-6">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-4xl">
           <AdminLoginSection
             isBusy={auth.isBusy}
             isAuthenticating={auth.viewState === 'authenticating'}
