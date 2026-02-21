@@ -191,6 +191,74 @@ The generated site is:
 
 ---
 
+## Admin panel (edit config in the browser)
+
+The `/admin` route lets repository **admins** edit `gitforge.config.json` (hero, featured repos, custom links) from the browser. Changes are committed via the GitHub API; GitHub Actions then rebuilds the site.
+
+### 1. Create a GitHub OAuth App
+
+1. Go to **GitHub → Settings → Developer settings → OAuth Apps**: [github.com/settings/developers](https://github.com/settings/developers).
+2. Click **New OAuth App**.
+3. Set:
+   - **Application name**: e.g. `gitfolio Admin`
+   - **Homepage URL**: your site URL  
+     - User site: `https://YOUR_USERNAME.github.io`  
+     - Project site: `https://YOUR_USERNAME.github.io/gitfolio`
+   - **Authorization callback URL**: same as Homepage (or the default shown).
+4. Click **Register application**.
+5. Copy the **Client ID** (you do **not** need the client secret for the Device Flow used here).
+
+### 2. Configure environment variables
+
+Copy the example env file and set the admin variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set:
+
+```bash
+VITE_GITHUB_CLIENT_ID=your_oauth_app_client_id_here
+VITE_GITHUB_OWNER=your-github-username-or-org
+VITE_GITHUB_REPO=gitfolio
+```
+
+- `VITE_GITHUB_OWNER`: owner of the repo (your username or org).
+- `VITE_GITHUB_REPO`: repository name (e.g. `gitfolio` or `yourusername.github.io`).
+
+### 3. Run the app and open the admin panel
+
+```bash
+pnpm dev
+```
+
+Then open:
+
+- **Main site**: `http://localhost:5173/`
+- **Admin panel**: `http://localhost:5173/admin`
+
+Click **Login with GitHub**, complete the device flow in the new tab, then edit and save. Only users with **admin** permission on the repo can save; others see “Unauthorized”.
+
+### Deployed site (GitHub Pages)
+
+1. **Create an OAuth App** at [github.com/settings/developers](https://github.com/settings/developers):
+   - Homepage URL: your site URL (e.g. `https://yourusername.github.io/gitfolio`)
+   - Authorization callback URL: same as Homepage
+   - Copy the **Client ID**
+
+2. **Add GitHub Actions secret**:
+   - Repo → **Settings → Secrets and variables → Actions**
+   - **New repository secret**
+   - Name: `VITE_GITHUB_CLIENT_ID`
+   - Value: your OAuth App Client ID
+
+   The workflow already uses `VITE_GITHUB_OWNER` and `VITE_GITHUB_REPO` from the repo (automatic for forks).
+
+3. **Note:** If “Login with GitHub” fails in production (CORS), you’ll need a small serverless proxy for the OAuth token exchange.
+
+---
+
 ## CLI usage details
 
 ### Command
