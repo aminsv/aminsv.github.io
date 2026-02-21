@@ -3,7 +3,7 @@ import type { CustomLink, GitforgeConfig } from '../../types/gitforgeConfig'
 import { DEFAULT_HERO, DEFAULT_CUSTOM_LINK } from '../utils/configHelpers'
 
 export function useConfigForm(
-  config: GitforgeConfig | null,
+  _config: GitforgeConfig | null,
   setConfig: React.Dispatch<React.SetStateAction<GitforgeConfig | null>>,
 ) {
   const updateConfigField = useCallback(
