@@ -54,6 +54,20 @@ const SIDEBAR_ITEMS = [
   },
 ] as const
 
+const SETTINGS_ITEMS = [
+  {
+    to: '/admin/settings',
+    end: false,
+    label: 'Settings',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+] as const
+
 export function AdminSidebar() {
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-950/80">
@@ -62,6 +76,28 @@ export function AdminSidebar() {
           Content
         </p>
         {SIDEBAR_ITEMS.map(({ to, end, label, icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-emerald-500/15 text-emerald-400'
+                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+              }`
+            }
+          >
+            <span className="shrink-0 opacity-80">{icon}</span>
+            {label}
+          </NavLink>
+        ))}
+      </div>
+      <div className="flex flex-col gap-0.5 border-t border-slate-800 p-3">
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Settings
+        </p>
+        {SETTINGS_ITEMS.map(({ to, end, label, icon }) => (
           <NavLink
             key={to}
             to={to}

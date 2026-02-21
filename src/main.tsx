@@ -9,6 +9,7 @@ import { AdminConfigPage } from './admin/pages/AdminConfigPage'
 import { AdminPostsPage } from './admin/pages/AdminPostsPage'
 import { AdminProjectsPage } from './admin/pages/AdminProjectsPage'
 import { AdminPlaceholderPage } from './admin/pages/AdminPlaceholderPage'
+import { AdminSettingsPage } from './admin/pages/AdminSettingsPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -30,6 +31,7 @@ createRoot(document.getElementById('root')!).render(
             }
           />
           <Route path="posts" element={<AdminPostsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
