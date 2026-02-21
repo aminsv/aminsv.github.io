@@ -1,0 +1,16 @@
+{
+  "githubOwner": "amide-init",
+  "profileType": "user",
+  "featuredRepos": [
+    "gitfolio"
+  ],
+  "listedRepo": {
+    "count": 4,
+    "sort": "date"
+  },
+  "hero": {
+    "eyebrow": "Open-source, developer-first profile",
+    "minorInfo": ""
+  },
+  "customLinks": []
+}
