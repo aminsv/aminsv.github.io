@@ -25,6 +25,16 @@ const OAUTH_BASE_URL = GITHUB_OAUTH_PROXY
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/api/github/login`
     : 'https://github.com/login'
 
+/** Base64-encode a UTF-8 string (btoa only supports Latin1). */
+function utf8ToBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
+}
+
 export function getStoredToken(): string | null {
   try {
     return window.sessionStorage.getItem(ACCESS_TOKEN_KEY)
@@ -326,7 +336,7 @@ export async function updateConfig(
 ): Promise<ConfigFile> {
   const { config, sha, message } = params
   const json = JSON.stringify(config, null, 2)
-  const contentBase64 = btoa(json)
+  const contentBase64 = utf8ToBase64(json)
 
   const body: Record<string, unknown> = {
     message: message ?? 'Update gitfolio config via admin panel',
@@ -439,7 +449,7 @@ async function updateContentFile<T>(
   skipRetry = false,
 ): Promise<ContentFileResult<T>> {
   const json = JSON.stringify(items, null, 2)
-  const contentBase64 = btoa(json)
+  const contentBase64 = utf8ToBase64(json)
 
   const body: Record<string, unknown> = {
     message,

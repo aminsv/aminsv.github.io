@@ -1,3 +1,4 @@
+import { AdminMarkdownEditor } from '../../components/admin'
 import { useAdminAuthContext } from '../context/AdminAuthContext'
 import { useBlogsStore } from '../hooks/useBlogsStore'
 import type { Blog } from '../../types/contentTypes'
@@ -111,12 +112,11 @@ function BlogCard({
             value={blog.title}
             onChange={(e) => onUpdate({ title: e.target.value })}
           />
-          <textarea
-            rows={6}
-            placeholder="Content (markdown supported)"
-            className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-emerald-500 focus:outline-none"
+          <AdminMarkdownEditor
             value={blog.content}
-            onChange={(e) => onUpdate({ content: e.target.value })}
+            onChange={(content) => onUpdate({ content })}
+            placeholder="Markdown content…"
+            minRows={6}
           />
           <p className="text-[11px] text-slate-500">
             Created {formatDate(blog.createdAt)} · Updated{' '}
