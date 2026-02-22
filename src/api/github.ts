@@ -1,5 +1,5 @@
 // src/api/github.ts
-import type { Blog, Post, Project } from '../types/contentTypes'
+import type { Blog, Post, Project, Video } from '../types/contentTypes'
 import type { GitforgeConfig } from '../types/gitforgeConfig'
 
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID as string
@@ -548,6 +548,25 @@ export async function updatePosts(
   return updateContentFile<Post>(
     token,
     `${DATA_BASE}/posts.json`,
+    items,
+    sha,
+    message,
+  )
+}
+
+export async function getVideos(token: string): Promise<ContentFileResult<Video>> {
+  return getContentFile<Video>(token, `${DATA_BASE}/videos.json`)
+}
+
+export async function updateVideos(
+  token: string,
+  items: Video[],
+  sha: string | null,
+  message = 'Update videos via admin panel',
+): Promise<ContentFileResult<Video>> {
+  return updateContentFile<Video>(
+    token,
+    `${DATA_BASE}/videos.json`,
     items,
     sha,
     message,

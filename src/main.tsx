@@ -8,7 +8,7 @@ import { AdminBlogsPage } from './admin/pages/AdminBlogsPage'
 import { AdminConfigPage } from './admin/pages/AdminConfigPage'
 import { AdminPostsPage } from './admin/pages/AdminPostsPage'
 import { AdminProjectsPage } from './admin/pages/AdminProjectsPage'
-import { AdminPlaceholderPage } from './admin/pages/AdminPlaceholderPage'
+import { AdminVideosPage } from './admin/pages/AdminVideosPage'
 import { AdminSettingsPage } from './admin/pages/AdminSettingsPage'
 
 createRoot(document.getElementById('root')!).render(
@@ -21,15 +21,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="config" element={<AdminConfigPage />} />
           <Route path="projects" element={<AdminProjectsPage />} />
           <Route path="blogs" element={<AdminBlogsPage />} />
-          <Route
-            path="videos"
-            element={
-              <AdminPlaceholderPage
-                title="Videos"
-                description="Manage video content and embeds."
-              />
-            }
-          />
+          <Route path="videos" element={<AdminVideosPage />} />
           <Route path="posts" element={<AdminPostsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>

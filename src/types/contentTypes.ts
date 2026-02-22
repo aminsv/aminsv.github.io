@@ -27,3 +27,11 @@ export type Post = Timestamped & {
   title: string
   content: string
 }
+
+/** Video (YouTube only for now). title, videoUrl, thumbnail from noembed. */
+export type Video = Timestamped & {
+  id: string
+  title: string
+  videoUrl: string
+  thumbnail?: string
+}
