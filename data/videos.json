@@ -1,0 +1,18 @@
+[
+  {
+    "id": "bea99724-822b-43cf-a04a-09e225440bf9",
+    "title": "#Project 01 : House Price Prediction using Machine Learning | #MachineLearningProject",
+    "videoUrl": "https://www.youtube.com/watch?v=UJowuReWvKM&t=12s",
+    "thumbnail": "https://i.ytimg.com/vi/UJowuReWvKM/hqdefault.jpg",
+    "createdAt": "2026-02-22T10:14:19.428Z",
+    "updatedAt": "2026-02-22T10:14:22.841Z"
+  },
+  {
+    "id": "e56d3128-3ae3-42a7-94c3-6ce1e44c1ddd",
+    "title": "Face Mask detection using Transfer learning",
+    "videoUrl": "https://www.youtube.com/watch?v=mcZ62541qm4",
+    "createdAt": "2026-02-22T10:17:39.209Z",
+    "updatedAt": "2026-02-22T10:17:42.600Z",
+    "thumbnail": "https://i.ytimg.com/vi/mcZ62541qm4/hqdefault.jpg"
+  }
+]
