@@ -19,5 +19,20 @@
       "url": "https://www.linkedin.com/in/aaminu/"
     }
   ],
-  "showStats": false
+  "showVideosSection": true,
+  "showBlogsSection": true,
+  "showProjectsSection": true,
+  "showStats": true,
+  "stats": {
+    "showLanguageChart": true,
+    "showRepoActivityChart": true,
+    "showCommitActivityChart": true,
+    "showTopReposChart": false
+  },
+  "contact": {
+    "showCompany": true,
+    "showEmail": true,
+    "showWebsite": true,
+    "showTwitter": true
+  }
 }
