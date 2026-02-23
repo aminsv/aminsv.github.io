@@ -2,6 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { ViteDevServer } from 'vite'
+
+type NextFunction = (err?: unknown) => void
 
 // For project site (username.github.io/repo): keep 1 path segment (repo name)
 // For user site (username.github.io): keep 0
@@ -42,8 +46,9 @@ function ghPages404() {
 function copyData() {
   return {
     name: 'copy-data',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use(
+        (req: IncomingMessage & { url?: string }, res: ServerResponse, next: NextFunction) => {
         const m = req.url?.match(/^\/data\/([a-z0-9_-]+\.json)$/i)
         if (!m) return next()
         const dataDir = join(process.cwd(), 'data')
@@ -55,7 +60,8 @@ function copyData() {
         } catch {
           next()
         }
-      })
+        },
+      )
     },
     closeBundle() {
       const dataDir = join(process.cwd(), 'data')

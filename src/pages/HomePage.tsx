@@ -18,13 +18,7 @@ const stats = (siteContent as { stats?: unknown }).stats as {
 
 export default function HomePage() {
   const { theme } = useOutletContext<LayoutContext>()
-  const { hero, snapshot, philosophy, projects, footer } = siteContent as {
-    hero: unknown
-    snapshot: unknown
-    philosophy: unknown
-    projects: { title?: string; body?: string; repos: unknown[] }
-    footer: unknown
-  }
+  const { hero, snapshot, philosophy, projects } = siteContent as any
 
   return (
     <main>
