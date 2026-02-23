@@ -852,7 +852,7 @@ async function main() {
         'This page is generated from GitHub profile data and can be deployed as a fully static site.',
       subtleText:
         'Deterministic by default. Explainability over magic. Built for developers first.',
-      githubLabel: 'GitHub',
+      githubLabel: 'GitProfile',
       githubUrl: profile.html_url,
     },
   }
