@@ -19,6 +19,10 @@ export function useAdminAuth() {
   const [configSha, setConfigSha] = useState<string | null>(null)
   const [error, setError] = useState<AdminUiError | null>(null)
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
+  const [deviceInfo, setDeviceInfo] = useState<{
+    verificationUrl: string
+    userCode: string
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -70,10 +74,13 @@ export function useAdminAuth() {
   const handleLogin = useCallback(async () => {
     setError(null)
     setSaveSuccess(null)
+    setDeviceInfo(null)
 
     try {
       setViewState('authenticating')
-      const newToken = await login()
+      const newToken = await login((info) => {
+        setDeviceInfo(info)
+      })
       setToken(newToken)
     } catch (err) {
       setViewState('unauthenticated')
@@ -90,6 +97,7 @@ export function useAdminAuth() {
     setConfig(null)
     setConfigSha(null)
     setRepoName(null)
+    setDeviceInfo(null)
     setViewState('unauthenticated')
     setError(null)
     setSaveSuccess(null)
@@ -155,5 +163,6 @@ export function useAdminAuth() {
     handleSave,
     isBusy,
     heading,
+    deviceInfo,
   }
 }

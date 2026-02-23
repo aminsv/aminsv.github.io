@@ -33,6 +33,7 @@ function AdminPage() {
             isAuthenticating={auth.viewState === 'authenticating'}
             errorMessage={auth.error?.message ?? null}
             onLogin={auth.handleLogin}
+            deviceInfo={auth.deviceInfo}
           />
         </div>
       </div>

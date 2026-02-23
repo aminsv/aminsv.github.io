@@ -176,19 +176,18 @@ async function pollForAccessToken(
  * structure here is what you'd use; if you hit CORS, move these calls to a
  * serverless function while keeping the rest of the code unchanged.
  */
-export async function login(): Promise<string> {
+export async function login(
+  onDeviceInfo?: (info: { verificationUrl: string; userCode: string }) => void,
+): Promise<string> {
   const device = await requestDeviceCode()
 
   const verificationUrl =
     device.verification_uri_complete || device.verification_uri
 
-  // Minimal UX; in a real app you'd render this in the React tree instead.
+  // Open GitHub verification URL in a new tab, and surface details to the UI
+  // so they can be shown in the admin login panel instead of an alert.
   window.open(verificationUrl, '_blank', 'noopener,noreferrer')
-  // eslint-disable-next-line no-alert
-  alert(
-    `To continue, visit:\n\n${verificationUrl}\n\n` +
-      `If prompted, enter this code:\n${device.user_code}`,
-  )
+  onDeviceInfo?.({ verificationUrl, userCode: device.user_code })
 
   const token = await pollForAccessToken(device.device_code, device.interval)
   storeToken(token)

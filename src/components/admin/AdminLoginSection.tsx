@@ -3,6 +3,7 @@ type AdminLoginSectionProps = {
   isAuthenticating: boolean
   errorMessage: string | null
   onLogin: () => void
+  deviceInfo?: { verificationUrl: string; userCode: string } | null
 }
 
 export function AdminLoginSection({
@@ -10,6 +11,7 @@ export function AdminLoginSection({
   isAuthenticating,
   errorMessage,
   onLogin,
+  deviceInfo,
 }: AdminLoginSectionProps) {
   return (
     <div className="flex w-full flex-col gap-6 rounded-lg border border-slate-800 bg-slate-900/60 p-6 sm:flex-row">
@@ -32,10 +34,31 @@ export function AdminLoginSection({
           {isBusy ? 'Signing in…' : 'Login with GitHub'}
         </button>
         {isAuthenticating && (
-          <p className="mt-3 text-xs text-slate-400">
-            If you've authorized in the other tab, return here and wait a few
-            seconds for the dashboard to load.
-          </p>
+          <div className="mt-3 space-y-2 text-xs text-slate-400">
+            <p>
+              If you've authorized in the other tab, return here and wait a few
+              seconds for the dashboard to load.
+            </p>
+            {deviceInfo && (
+              <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3 text-[11px]">
+                <p className="mb-1 font-semibold text-slate-200">
+                  Complete login in your browser
+                </p>
+                <p className="mb-1">
+                  1. Open this URL (or check the tab that just opened):
+                </p>
+                <p className="break-all rounded bg-slate-900 px-2 py-1 text-[10px] text-emerald-300">
+                  {deviceInfo.verificationUrl}
+                </p>
+                <p className="mt-2 mb-1">
+                  2. If GitHub asks for a code, paste this:
+                </p>
+                <p className="inline-flex items-center gap-2 rounded bg-slate-900 px-2 py-1 text-[11px] font-mono text-amber-300">
+                  <span>{deviceInfo.userCode}</span>
+                </p>
+              </div>
+            )}
+          </div>
         )}
         {errorMessage && (
           <p className="mt-3 text-xs text-rose-400">{errorMessage}</p>

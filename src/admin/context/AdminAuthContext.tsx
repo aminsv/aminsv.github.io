@@ -15,6 +15,7 @@ type AdminAuthContextValue = {
   handleSave: (e: React.FormEvent) => Promise<void>
   isBusy: boolean
   heading: string
+  deviceInfo: { verificationUrl: string; userCode: string } | null
 }
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
