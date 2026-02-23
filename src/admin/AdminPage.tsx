@@ -4,11 +4,40 @@ import {
   AdminLayout,
   AdminUnauthorizedSection,
 } from '../components/admin'
+import { useEffect } from 'react'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 import { useAdminAuth } from './hooks/useAdminAuth'
 
 function AdminPage() {
   const auth = useAdminAuth()
+
+  // Ensure admin uses the same Gitfolio favicon instead of default Vite icon.
+  useEffect(() => {
+    const firstChar = 'G'
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        <defs>
+          <linearGradient id="grad-admin" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="6" fill="url(#grad-admin)"/>
+        <text x="16" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#020617" text-anchor="middle">${firstChar}</text>
+      </svg>
+    `
+    const svgBlob = new Blob([svg], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(svgBlob)
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = 'icon'
+      document.getElementsByTagName('head')[0].appendChild(link)
+    }
+    link.type = 'image/svg+xml'
+    link.href = url
+    return () => URL.revokeObjectURL(url)
+  }, [auth.repoName])
 
   const showLogin = !auth.token || auth.viewState === 'unauthenticated'
   const showUnauthorized = Boolean(
