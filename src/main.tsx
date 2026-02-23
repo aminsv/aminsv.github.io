@@ -11,7 +11,6 @@ import ProjectsPage from './pages/ProjectsPage'
 import AdminPage from './admin/AdminPage'
 import { AdminBlogsPage } from './admin/pages/AdminBlogsPage'
 import { AdminConfigPage } from './admin/pages/AdminConfigPage'
-import { AdminPostsPage } from './admin/pages/AdminPostsPage'
 import { AdminProjectsPage } from './admin/pages/AdminProjectsPage'
 import { AdminVideosPage } from './admin/pages/AdminVideosPage'
 import { AdminSettingsPage } from './admin/pages/AdminSettingsPage'
@@ -33,7 +32,6 @@ createRoot(document.getElementById('root')!).render(
           <Route path="projects" element={<AdminProjectsPage />} />
           <Route path="blogs" element={<AdminBlogsPage />} />
           <Route path="videos" element={<AdminVideosPage />} />
-          <Route path="posts" element={<AdminPostsPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Routes>
