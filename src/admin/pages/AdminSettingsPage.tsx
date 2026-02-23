@@ -7,11 +7,21 @@ import {
   updatePosts,
   updateProjects,
 } from '../../api/github'
+import { AdminFormFooter } from '../../components/admin'
 import { useAdminAuthContext } from '../context/AdminAuthContext'
 import { useConfigForm } from '../hooks/useConfigForm'
 
 export function AdminSettingsPage() {
-  const { token, config, setConfig } = useAdminAuthContext()
+  const {
+    token,
+    config,
+    setConfig,
+    error,
+    saveSuccess,
+    handleSave,
+    isBusy,
+    viewState,
+  } = useAdminAuthContext()
   const { updateConfigField } = useConfigForm(config, setConfig)
   const [showClearModal, setShowClearModal] = useState(false)
   useEffect(() => {
@@ -71,40 +81,43 @@ export function AdminSettingsPage() {
     }
   }
 
+  const isSaving = viewState === 'saving'
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-100">Settings</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Admin and data options for this site.
-        </p>
-      </div>
+    <>
+      <form className="space-y-6" onSubmit={handleSave}>
+        <div>
+          <h2 className="text-lg font-semibold text-slate-100">Settings</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Admin and data options for this site.
+          </p>
+        </div>
 
-      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
-        <h3 className="text-sm font-semibold text-slate-300">Danger zone</h3>
-        <p className="mt-1 text-xs text-slate-500">
-          Clear all projects, blogs, and posts. Repo files will be reset to
-          empty arrays.
-        </p>
-        {clearState.error && (
-          <p className="mt-2 text-sm text-rose-400">{clearState.error}</p>
-        )}
-        {clearState.success && (
-          <p className="mt-2 text-sm text-emerald-400">{clearState.success}</p>
-        )}
-        <button
-          type="button"
-          onClick={() => setShowClearModal(true)}
-          disabled={clearState.loading}
-          className="mt-3 rounded-md border border-rose-700 bg-rose-950/50 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-900/50 disabled:opacity-50"
-        >
-          {clearState.loading ? 'Clearing…' : 'Clear all data'}
-        </button>
-      </section>
+        <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+          <h3 className="text-sm font-semibold text-slate-300">Danger zone</h3>
+          <p className="mt-1 text-xs text-slate-500">
+            Clear all projects, blogs, and posts. Repo files will be reset to
+            empty arrays.
+          </p>
+          {clearState.error && (
+            <p className="mt-2 text-sm text-rose-400">{clearState.error}</p>
+          )}
+          {clearState.success && (
+            <p className="mt-2 text-sm text-emerald-400">{clearState.success}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowClearModal(true)}
+            disabled={clearState.loading}
+            className="mt-3 rounded-md border border-rose-700 bg-rose-950/50 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-900/50 disabled:opacity-50"
+          >
+            {clearState.loading ? 'Clearing…' : 'Clear all data'}
+          </button>
+        </section>
 
-      {config && (
-        <>
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+        {config && (
+          <>
+            <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
             <h3 className="text-sm font-semibold text-slate-200">
               Sections visibility
             </h3>
@@ -147,9 +160,9 @@ export function AdminSettingsPage() {
                 <span>Show Projects section</span>
               </label>
             </div>
-          </section>
+            </section>
 
-          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+            <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
             <h3 className="text-sm font-semibold text-slate-200">
               Stats & charts
             </h3>
@@ -247,9 +260,17 @@ export function AdminSettingsPage() {
                 )
               })()}
             </div>
-          </section>
-        </>
-      )}
+            </section>
+          </>
+        )}
+
+        <AdminFormFooter
+          errorMessage={error?.message ?? null}
+          saveSuccessMessage={saveSuccess}
+          isSaving={isSaving}
+          isBusy={isBusy}
+        />
+      </form>
 
       {showClearModal && (
         <div
@@ -292,6 +313,6 @@ export function AdminSettingsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
