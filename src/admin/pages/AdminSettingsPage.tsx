@@ -8,9 +8,11 @@ import {
   updateProjects,
 } from '../../api/github'
 import { useAdminAuthContext } from '../context/AdminAuthContext'
+import { useConfigForm } from '../hooks/useConfigForm'
 
 export function AdminSettingsPage() {
-  const { token } = useAdminAuthContext()
+  const { token, config, setConfig } = useAdminAuthContext()
+  const { updateConfigField } = useConfigForm(config, setConfig)
   const [showClearModal, setShowClearModal] = useState(false)
   useEffect(() => {
     if (!showClearModal) return
@@ -99,6 +101,155 @@ export function AdminSettingsPage() {
           {clearState.loading ? 'Clearing…' : 'Clear all data'}
         </button>
       </section>
+
+      {config && (
+        <>
+          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+            <h3 className="text-sm font-semibold text-slate-200">
+              Sections visibility
+            </h3>
+            <p className="mt-1 text-xs text-slate-400">
+              Toggle which sections appear on the public homepage. Routes like
+              /videos, /blogs, and /projects remain available.
+            </p>
+            <div className="mt-4 space-y-2 text-xs text-slate-300">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                  checked={config.showVideosSection !== false}
+                  onChange={(e) =>
+                    updateConfigField('showVideosSection', e.target.checked)
+                  }
+                />
+                <span>Show Videos section</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                  checked={config.showBlogsSection !== false}
+                  onChange={(e) =>
+                    updateConfigField('showBlogsSection', e.target.checked)
+                  }
+                />
+                <span>Show Blogs section</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                  checked={config.showProjectsSection !== false}
+                  onChange={(e) =>
+                    updateConfigField('showProjectsSection', e.target.checked)
+                  }
+                />
+                <span>Show Projects section</span>
+              </label>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+            <h3 className="text-sm font-semibold text-slate-200">
+              Stats & charts
+            </h3>
+            <p className="mt-1 text-xs text-slate-400">
+              Control which GitHub statistics and charts are included. These are
+              computed at build time from your profile.
+            </p>
+
+            <div className="mt-4 space-y-2 text-xs text-slate-300">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                  checked={config.showStats !== false}
+                  onChange={(e) =>
+                    updateConfigField('showStats', e.target.checked)
+                  }
+                />
+                <span>Show Stats section</span>
+              </label>
+            </div>
+
+            <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-2">
+              {(() => {
+                const stats = config.stats ?? {}
+                const updateStatsField = (
+                  key:
+                    | 'showLanguageChart'
+                    | 'showRepoActivityChart'
+                    | 'showCommitActivityChart'
+                    | 'showTopReposChart',
+                  value: boolean,
+                ) => {
+                  updateConfigField('stats', { ...stats, [key]: value })
+                }
+                return (
+                  <>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                        checked={stats.showLanguageChart !== false}
+                        onChange={(e) =>
+                          updateStatsField(
+                            'showLanguageChart',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <span>Language distribution chart</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                        checked={stats.showRepoActivityChart !== false}
+                        onChange={(e) =>
+                          updateStatsField(
+                            'showRepoActivityChart',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <span>Repos per year chart</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                        checked={stats.showCommitActivityChart !== false}
+                        onChange={(e) =>
+                          updateStatsField(
+                            'showCommitActivityChart',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <span>Commit activity chart</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500"
+                        checked={stats.showTopReposChart === true}
+                        onChange={(e) =>
+                          updateStatsField(
+                            'showTopReposChart',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <span>Top repos by stars chart</span>
+                    </label>
+                  </>
+                )
+              })()}
+            </div>
+          </section>
+        </>
+      )}
 
       {showClearModal && (
         <div

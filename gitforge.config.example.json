@@ -13,6 +13,9 @@
     "eyebrow": "Open-source, developer-first profile",
     "minorInfo": "Brief tagline or quick intro that appears in the hero section."
   },
+  "showVideosSection": true,
+  "showBlogsSection": true,
+  "showProjectsSection": true,
   "showStats": true,
   "stats": {
     "showLanguageChart": true,

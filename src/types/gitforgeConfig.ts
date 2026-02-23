@@ -33,6 +33,10 @@ export interface GitforgeConfig {
   listedRepo?: ListedRepoConfig
   hero?: HeroConfig
   customLinks?: CustomLink[]
+  // Section visibility toggles (all default to true when omitted)
+  showVideosSection?: boolean
+  showBlogsSection?: boolean
+  showProjectsSection?: boolean
   showStats?: boolean
   stats?: {
     showLanguageChart?: boolean

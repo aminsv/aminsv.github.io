@@ -1,5 +1,6 @@
 import { useOutletContext } from 'react-router-dom'
 import siteContent from '../siteContent.json'
+import { githubConfig } from '../generated/githubData'
 import type { LayoutContext } from '../App'
 import HeroSection from '../components/HeroSection'
 import PhilosophySection from '../components/PhilosophySection'
@@ -20,19 +21,29 @@ export default function HomePage() {
   const { theme } = useOutletContext<LayoutContext>()
   const { hero, snapshot, philosophy, projects } = siteContent as any
 
+  const sectionsConfig = githubConfig as {
+    showVideosSection?: boolean
+    showBlogsSection?: boolean
+    showProjectsSection?: boolean
+  }
+
+  const showVideos = sectionsConfig.showVideosSection !== false
+  const showBlogs = sectionsConfig.showBlogsSection !== false
+  const showProjects = sectionsConfig.showProjectsSection !== false
+
   return (
-    <main>
+    <>
       <HeroSection hero={hero} snapshot={snapshot} theme={theme} />
       <PhilosophySection philosophy={philosophy} />
-      <VideosSection />
-      <BlogsSection />
-      <CustomProjectsSection />
+      {showVideos && <VideosSection />}
+      {showBlogs && <BlogsSection />}
+      {showProjects && <CustomProjectsSection />}
       <GitHubSection
         title={projects?.title ?? 'GitHub'}
         body={projects?.body ?? 'Repositories from this GitHub profile.'}
         repos={projects?.repos ?? []}
       />
       <StatsSection stats={stats ?? null} />
-    </main>
+    </>
   )
 }

@@ -510,6 +510,12 @@ async function main() {
       count: listedRepoCount,
       sort: listedRepoSort,
     },
+    // Section visibility flags for the client (default true when omitted in config)
+    showVideosSection: fileConfig.showVideosSection !== false,
+    showBlogsSection: fileConfig.showBlogsSection !== false,
+    showProjectsSection: fileConfig.showProjectsSection !== false,
+    showStats,
+    stats: statsConfig,
   }
 
   // ---------- Build siteContent JSON template used by the React app ----------
