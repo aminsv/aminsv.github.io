@@ -152,7 +152,20 @@ function App() {
             </p>
           </div>
           <div className="flex gap-3">
-            <a href="https://github.com/amide-init/gitfolio" target="_blank" rel="noreferrer" className="text-xs font-medium text-indigo-300 hover:text-indigo-200">{footer.githubLabel}</a>
+            <Link
+              to="/admin"
+              className="text-[11px] font-medium text-slate-500 underline-offset-2 hover:underline dark:text-slate-400"
+            >
+              Admin
+            </Link>
+            <a
+              href="https://github.com/amide-init/gitfolio"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-medium text-indigo-300 hover:text-indigo-200"
+            >
+              {footer.githubLabel}
+            </a>
           </div>
         </div>
       </footer>
