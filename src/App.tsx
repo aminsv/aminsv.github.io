@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import siteContent from './siteContent.json'
+import { githubConfig } from './generated/githubData'
 
 type Theme = 'dark' | 'light'
 
@@ -36,6 +37,52 @@ function App() {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     window.localStorage.setItem('gitforge-theme', theme)
   }, [theme])
+
+  // Apply font family from generated GitHub config
+  useEffect(() => {
+    const font = (githubConfig as {
+      fontFamily?: 'system' | 'ubuntu' | 'comic-sans' | 'inter' | 'roboto'
+    }).fontFamily || 'system'
+    let value =
+      "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    if (font === 'ubuntu') {
+      value = "'Ubuntu', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      // Inject Google Fonts stylesheet for Ubuntu if not already present
+      if (!document.getElementById('gf-font-ubuntu')) {
+        const link = document.createElement('link')
+        link.id = 'gf-font-ubuntu'
+        link.rel = 'stylesheet'
+        link.href =
+          'https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap'
+        document.head.appendChild(link)
+      }
+    } else if (font === 'inter') {
+      value =
+        "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      if (!document.getElementById('gf-font-inter')) {
+        const link = document.createElement('link')
+        link.id = 'gf-font-inter'
+        link.rel = 'stylesheet'
+        link.href =
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+        document.head.appendChild(link)
+      }
+    } else if (font === 'roboto') {
+      value =
+        "'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      if (!document.getElementById('gf-font-roboto')) {
+        const link = document.createElement('link')
+        link.id = 'gf-font-roboto'
+        link.rel = 'stylesheet'
+        link.href =
+          'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
+        document.head.appendChild(link)
+      }
+    } else if (font === 'comic-sans') {
+      value = "'Comic Sans MS', 'Comic Sans', cursive"
+    }
+    document.documentElement.style.setProperty('--gf-font-family', value)
+  }, [])
 
   // GitHub Pages 404 redirect: ?/path -> /path
   useEffect(() => {
@@ -75,7 +122,7 @@ function App() {
   }, [hero.title])
 
   const rootClasses =
-    'min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-[#050509] dark:text-slate-50'
+    'min-h-screen bg-slate-50 text-slate-900 dark:bg-[#050509] dark:text-slate-50'
   const headerClasses =
     theme === 'dark'
       ? 'sticky top-0 z-20 border-b border-white/5 bg-[#050509]/90 backdrop-blur'

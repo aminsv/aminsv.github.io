@@ -31,6 +31,8 @@ export interface GitforgeConfig {
   githubToken?: string | null
   featuredRepos?: string[]
   listedRepo?: ListedRepoConfig
+  /** Global font family for the site (optional, defaults to system). */
+  fontFamily?: 'system' | 'ubuntu' | 'comic-sans' | 'inter' | 'roboto'
   hero?: HeroConfig
   customLinks?: CustomLink[]
   // Section visibility toggles (all default to true when omitted)
