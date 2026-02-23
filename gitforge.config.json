@@ -27,7 +27,7 @@
     "showLanguageChart": true,
     "showRepoActivityChart": true,
     "showCommitActivityChart": true,
-    "showTopReposChart": false
+    "showTopReposChart": true
   },
   "contact": {
     "showCompany": true,
