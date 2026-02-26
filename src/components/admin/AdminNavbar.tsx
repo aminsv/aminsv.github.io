@@ -3,12 +3,23 @@ import { Link } from 'react-router-dom'
 type AdminNavbarProps = {
   repoName: string | null
   onLogout: () => void
+  onMenuOpen: () => void
 }
 
-export function AdminNavbar({ repoName, onLogout }: AdminNavbarProps) {
+export function AdminNavbar({ repoName, onLogout, onMenuOpen }: AdminNavbarProps) {
   return (
     <nav className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-800 bg-slate-950/95 px-6 backdrop-blur">
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onMenuOpen}
+          className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 md:hidden"
+          aria-label="Open navigation menu"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <Link
           to="/admin"
           className="flex items-center gap-2 text-base font-semibold tracking-tight text-slate-50"
@@ -19,7 +30,7 @@ export function AdminNavbar({ repoName, onLogout }: AdminNavbarProps) {
           Portfolio Admin
         </Link>
         {repoName && (
-          <span className="hidden text-xs text-slate-500 sm:inline">
+          <span className="hidden text-xs text-slate-500 md:inline">
             {repoName}
           </span>
         )}

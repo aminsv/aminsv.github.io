@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
 import { AdminNavbar } from './AdminNavbar'
 import { AdminSidebar } from './AdminSidebar'
@@ -8,11 +9,16 @@ type AdminLayoutProps = {
 }
 
 export function AdminLayout({ repoName, onLogout }: AdminLayoutProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  const openDrawer = useCallback(() => setDrawerOpen(true), [])
+  const closeDrawer = useCallback(() => setDrawerOpen(false), [])
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-50">
-      <AdminNavbar repoName={repoName} onLogout={onLogout} />
+      <AdminNavbar repoName={repoName} onLogout={onLogout} onMenuOpen={openDrawer} />
       <div className="flex flex-1">
-        <AdminSidebar />
+        <AdminSidebar drawerOpen={drawerOpen} onClose={closeDrawer} />
         <main className="flex-1 overflow-auto">
           <div className="mx-auto max-w-4xl p-6">
             <Outlet />
