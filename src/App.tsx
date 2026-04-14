@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import siteContent from './siteContent.json'
 import { githubConfig } from './generated/githubData'
+import { activeTemplate } from './lib/activeTemplate'
 
 type Theme = 'dark' | 'light'
 
@@ -16,26 +17,52 @@ function App() {
   }
   const { hero, footer } = sc
 
-  const [theme, setTheme] = useState<Theme>('dark')
+  // Theme is derived from the template setting — no user toggle needed.
+  const template = activeTemplate
+  const theme: Theme = template === 'classic' ? 'light' : 'dark'
+  // hacker template overrides the shared nav/footer to terminal green
+  const isHacker = template === 'hacker'
+  // netflix template overrides the shared nav/footer to Netflix style
+  const isNetflix = template === 'netflix'
+  // threejs template gets sci-fi HUD navbar
+  const isThreejs = template === 'threejs'
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const scanRef = useRef<HTMLCanvasElement>(null)
+  const footerScanRef = useRef<HTMLCanvasElement>(null)
+
+  // Animated scan-line canvas — shared animation logic, runs on both navbar and footer canvases
   useEffect(() => {
-    const stored = window.localStorage.getItem('gitforge-theme')
-    if (stored === 'dark' || stored === 'light') {
-      setTheme(stored)
-      document.documentElement.classList.toggle('dark', stored === 'dark')
-      return
+    if (!isThreejs) return
+    const canvases = [scanRef.current, footerScanRef.current].filter(Boolean) as HTMLCanvasElement[]
+    if (!canvases.length) return
+
+    let frame: number
+    let t = 0
+    const draw = () => {
+      frame = requestAnimationFrame(draw)
+      t += 0.012
+      canvases.forEach((canvas) => {
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        const w = canvas.width
+        ctx.clearRect(0, 0, w, 1)
+        const grad = ctx.createLinearGradient(0, 0, w, 0)
+        const pos = Math.sin(t) * 0.5 + 0.5
+        const span = 0.28
+        grad.addColorStop(Math.max(0, pos - span), 'rgba(59,130,246,0)')
+        grad.addColorStop(pos, 'rgba(99,179,255,0.9)')
+        grad.addColorStop(Math.min(1, pos + span), 'rgba(6,182,212,0)')
+        ctx.fillStyle = grad
+        ctx.fillRect(0, 0, w, 1)
+      })
     }
-    const prefersDark = window.matchMedia?.(
-      '(prefers-color-scheme: dark)',
-    ).matches
-    const initial = prefersDark ? 'dark' : 'light'
-    setTheme(initial)
-    document.documentElement.classList.toggle('dark', initial === 'dark')
-  }, [])
+    draw()
+    return () => cancelAnimationFrame(frame)
+  }, [isThreejs])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
-    window.localStorage.setItem('gitforge-theme', theme)
   }, [theme])
 
   // Apply font family from generated GitHub config
@@ -94,6 +121,10 @@ function App() {
   }, [location.search, navigate])
 
   useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
     document.title = hero.title || 'GitHub Profile'
     const firstChar = (hero.title || '?').charAt(0).toUpperCase()
     const svg = `
@@ -121,16 +152,31 @@ function App() {
     return () => URL.revokeObjectURL(url)
   }, [hero.title])
 
-  const rootClasses =
-    'min-h-screen bg-slate-50 text-slate-900 dark:bg-[#050509] dark:text-slate-50'
-  const headerClasses =
-    theme === 'dark'
-      ? 'sticky top-0 z-20 border-b border-white/5 bg-[#050509]/90 backdrop-blur'
-      : 'sticky top-0 z-20 border-b border-slate-200 bg-slate-50/90 backdrop-blur'
-  const footerClasses =
-    theme === 'dark'
-      ? 'border-t border-slate-800 bg-gradient-to-b from-[#111120] to-[#050509] py-6 text-xs text-slate-400'
-      : 'border-t border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 py-6 text-xs text-slate-600'
+  const rootClasses = isHacker
+    ? 'min-h-screen bg-black text-green-400'
+    : isNetflix
+      ? 'min-h-screen bg-[#141414] text-white'
+      : isThreejs
+        ? 'min-h-screen bg-[#050509] text-slate-50'
+        : 'min-h-screen bg-slate-50 text-slate-900 dark:bg-[#050509] dark:text-slate-50'
+  const headerClasses = isHacker
+    ? 'sticky top-0 z-20 border-b border-green-900/60 bg-black/95 backdrop-blur font-mono'
+    : isNetflix
+      ? 'sticky top-0 z-20 border-b border-white/5 bg-[#141414]/95 backdrop-blur'
+      : isThreejs
+        ? 'sticky top-0 z-20 bg-[#050509]/80 backdrop-blur-md'
+        : theme === 'dark'
+          ? 'sticky top-0 z-20 border-b border-white/5 bg-[#050509]/90 backdrop-blur'
+          : 'sticky top-0 z-20 border-b border-slate-200 bg-slate-50/90 backdrop-blur'
+  const footerClasses = isHacker
+    ? 'border-t border-green-900/60 bg-black py-4 text-xs text-green-900 font-mono'
+    : isNetflix
+      ? 'border-t border-white/5 bg-[#141414] py-6 text-xs text-[#999]'
+      : isThreejs
+        ? 'border-t border-blue-900/30 bg-gradient-to-b from-[#080c18] to-[#050509] py-6 text-xs text-slate-400'
+        : theme === 'dark'
+          ? 'border-t border-slate-800 bg-gradient-to-b from-[#111120] to-[#050509] py-6 text-xs text-slate-400'
+          : 'border-t border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 py-6 text-xs text-slate-600'
 
   const navInitials = (() => {
     const name = (hero.title || '').trim()
@@ -140,48 +186,206 @@ function App() {
     return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
   })()
 
+  const threejsNavLinks = (
+    [
+      { to: '/',         label: 'Home'     },
+      { to: '/videos',   label: 'Videos'   },
+      { to: '/blogs',    label: 'Blogs'    },
+      { to: '/projects', label: 'Projects' },
+    ] as const
+  )
+
   return (
     <div className={rootClasses}>
       <header className={headerClasses}>
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 no-underline text-slate-900 dark:text-slate-100"
-            aria-label={`${hero.title} home`}
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-xs font-semibold text-[#050509]" aria-hidden="true">
-              {navInitials}
-            </span>
-          </Link>
-          <nav className="flex items-center gap-3 text-xs font-medium text-slate-700 dark:text-slate-300" aria-label="Primary">
-            <Link to="/" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Home</Link>
-            <Link to="/videos" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Videos</Link>
-            <Link to="/blogs" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Blogs</Link>
-            <Link to="/projects" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Projects</Link>
-            <a href={`${import.meta.env.BASE_URL}#github`} className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">GitHub</a>
-            <a href={`${import.meta.env.BASE_URL}#stats`} className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Stats</a>
-            <a href={footer.githubUrl || '#'} target="_blank" rel="noreferrer" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">{footer.githubLabel || 'Fork'}</a>
-            <button
-              type="button"
-              onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
-              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] border-slate-300 bg-white/80 text-slate-800 transition hover:bg-white dark:border-slate-500/60 dark:bg-black/20 dark:text-slate-100 dark:hover:bg-black/40"
-              aria-label="Toggle light and dark mode"
-            >
-              <span aria-hidden="true" className="h-5 w-5">
-                {theme === 'dark' ? (
-                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
-                    <circle cx="12" cy="12" r="4" className="fill-amber-400" />
-                    <path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" className="stroke-amber-400" strokeWidth="1.5" strokeLinecap="round" />
+        {isThreejs ? (
+          <>
+            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+              {/* Logo */}
+              <Link to="/" aria-label={`${hero.title} home`} className="group relative inline-flex items-center gap-2.5 no-underline">
+                {/* Outer pulse ring */}
+                <span className="absolute -inset-1 rounded-full bg-blue-500/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-sm" />
+                <span className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-xs font-semibold text-[#050509] ring-1 ring-blue-500/40 group-hover:ring-cyan-400/60 transition-all duration-300">
+                  {navInitials}
+                </span>
+                <span className="hidden sm:block text-xs font-semibold tracking-widest uppercase text-slate-400 group-hover:text-slate-200 transition-colors">
+                  {hero.title}
+                </span>
+              </Link>
+
+              {/* Desktop nav */}
+              <nav className="hidden md:flex items-center gap-1" aria-label="Primary">
+                {threejsNavLinks.map(({ to, label }) => {
+                  const active = location.pathname === to
+                  return (
+                    <Link
+                      key={to}
+                      to={to}
+                      className={`relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 ${
+                        active
+                          ? 'text-cyan-300 bg-cyan-500/10 ring-1 ring-cyan-500/30'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
+                      }`}
+                    >
+                      {active && (
+                        <span className="absolute inset-x-2 bottom-0.5 h-px bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full" />
+                      )}
+                      {label}
+                    </Link>
+                  )
+                })}
+                <a
+                  href={`${import.meta.env.BASE_URL}#stats`}
+                  className="px-3 py-1.5 text-xs font-medium rounded-md text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-all duration-200"
+                >
+                  Stats
+                </a>
+              </nav>
+
+              {/* Mobile hamburger */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((prev) => !prev)}
+                className="md:hidden flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:text-slate-100 hover:bg-white/5 transition"
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              >
+                {mobileMenuOpen ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 ) : (
-                  <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 scale-125">
-                    <path d="M20 12.5A7.5 7.5 0 0 1 11.5 4 6 6 0 1 0 20 12.5Z" className="fill-slate-700" />
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )}
-              </span>
-            </button>
-          </nav>
-        </div>
+              </button>
+            </div>
+
+            {/* Animated scan-line bottom border */}
+            <canvas ref={scanRef} width={1200} height={1} className="w-full block" aria-hidden="true" style={{ height: 1 }} />
+
+            {/* Mobile dropdown */}
+            {mobileMenuOpen && (
+              <nav
+                className="md:hidden border-t border-blue-900/30 bg-[#050509]/95 backdrop-blur"
+                aria-label="Mobile navigation"
+              >
+                <div className="mx-auto flex max-w-5xl flex-col px-4 py-2">
+                  {threejsNavLinks.map(({ to, label }, i) => {
+                    const active = location.pathname === to
+                    return (
+                      <Link
+                        key={to}
+                        to={to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`${i > 0 ? 'border-t border-blue-900/20' : ''} py-2.5 text-sm font-medium transition-colors ${active ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-100'}`}
+                      >
+                        {label}
+                      </Link>
+                    )
+                  })}
+                  <a
+                    href={`${import.meta.env.BASE_URL}#stats`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="border-t border-blue-900/20 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-100 transition-colors"
+                  >
+                    Stats
+                  </a>
+                </div>
+              </nav>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+              <Link
+                to="/"
+                className={`inline-flex items-center gap-2 no-underline ${isHacker ? 'text-green-500' : isNetflix ? 'text-white' : 'text-slate-900 dark:text-slate-100'}`}
+                aria-label={`${hero.title} home`}
+              >
+                {isHacker ? (
+                  <span className="font-mono text-sm text-green-500">
+                    <span className="text-green-800">~/</span>{navInitials}
+                    <span className="inline-block w-1.5 h-3.5 bg-green-500 animate-pulse ml-0.5 align-middle" />
+                  </span>
+                ) : isNetflix ? (
+                  <span className="text-lg font-black text-[#e50914] tracking-tight">{navInitials}</span>
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-xs font-semibold text-[#050509]" aria-hidden="true">
+                    {navInitials}
+                  </span>
+                )}
+              </Link>
+
+              {/* Desktop nav — hidden below md */}
+              {isHacker ? (
+                <nav className="hidden md:flex items-center gap-4 text-xs text-green-700" aria-label="Primary">
+                  {(['/', '/videos', '/blogs', '/projects'] as const).map((path, i) => {
+                    const labels = ['~', 'videos', 'blogs', 'projects']
+                    return (
+                      <Link key={path} to={path} className="transition hover:text-green-400">
+                        {labels[i]}
+                      </Link>
+                    )
+                  })}
+                  <a href={`${import.meta.env.BASE_URL}#stats`} className="transition hover:text-green-400">stats</a>
+                </nav>
+              ) : isNetflix ? (
+                <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-[#e5e5e5]" aria-label="Primary">
+                  <Link to="/" className="transition hover:text-white">Home</Link>
+                  <Link to="/videos" className="transition hover:text-white">Videos</Link>
+                  <Link to="/blogs" className="transition hover:text-white">Blogs</Link>
+                  <Link to="/projects" className="transition hover:text-white">Projects</Link>
+                  <a href={`${import.meta.env.BASE_URL}#stats`} className="transition hover:text-white">Stats</a>
+                </nav>
+              ) : (
+                <nav className="hidden md:flex items-center gap-3 text-xs font-medium text-slate-700 dark:text-slate-300" aria-label="Primary">
+                  <Link to="/" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Home</Link>
+                  <Link to="/videos" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Videos</Link>
+                  <Link to="/blogs" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Blogs</Link>
+                  <Link to="/projects" className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Projects</Link>
+                  <a href={`${import.meta.env.BASE_URL}#stats`} className="border-b border-transparent pb-0.5 transition-colors hover:border-slate-500 hover:text-slate-900 dark:hover:border-slate-400 dark:hover:text-slate-50">Stats</a>
+                </nav>
+              )}
+
+              {/* Mobile controls: hamburger */}
+              <div className="flex items-center gap-2 md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen((prev) => !prev)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-md transition ${isHacker ? 'text-green-700 hover:bg-green-900/20' : isNetflix ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                  aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+                >
+                  {mobileMenuOpen ? (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile dropdown menu */}
+            {mobileMenuOpen && (
+              <nav
+                className={`border-t md:hidden backdrop-blur ${isHacker ? 'border-green-900/60 bg-black/95 font-mono text-xs text-green-700' : isNetflix ? 'border-white/5 bg-[#141414]/95 text-sm text-[#e5e5e5]' : 'border-slate-200 bg-slate-50/95 dark:border-white/5 dark:bg-[#050509]/95'}`}
+                aria-label="Mobile navigation"
+              >
+                <div className={`mx-auto flex max-w-5xl flex-col px-4 py-2 ${isHacker ? '' : isNetflix ? 'font-medium' : 'text-sm font-medium text-slate-700 dark:text-slate-300'}`}>
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)} className={`py-2.5 transition-colors ${isHacker ? 'hover:text-green-400' : isNetflix ? 'hover:text-white' : 'hover:text-slate-900 dark:hover:text-slate-50'}`}>{isHacker ? '~ home' : 'Home'}</Link>
+                  <Link to="/videos" onClick={() => setMobileMenuOpen(false)} className={`border-t py-2.5 transition-colors ${isHacker ? 'border-green-900/40 hover:text-green-400' : isNetflix ? 'border-white/5 hover:text-white' : 'border-slate-200/60 hover:text-slate-900 dark:border-white/5 dark:hover:text-slate-50'}`}>Videos</Link>
+                  <Link to="/blogs" onClick={() => setMobileMenuOpen(false)} className={`border-t py-2.5 transition-colors ${isHacker ? 'border-green-900/40 hover:text-green-400' : isNetflix ? 'border-white/5 hover:text-white' : 'border-slate-200/60 hover:text-slate-900 dark:border-white/5 dark:hover:text-slate-50'}`}>Blogs</Link>
+                  <Link to="/projects" onClick={() => setMobileMenuOpen(false)} className={`border-t py-2.5 transition-colors ${isHacker ? 'border-green-900/40 hover:text-green-400' : isNetflix ? 'border-white/5 hover:text-white' : 'border-slate-200/60 hover:text-slate-900 dark:border-white/5 dark:hover:text-slate-50'}`}>Projects</Link>
+                  <a href={`${import.meta.env.BASE_URL}#stats`} onClick={() => setMobileMenuOpen(false)} className={`border-t py-2.5 transition-colors ${isHacker ? 'border-green-900/40 hover:text-green-400' : isNetflix ? 'border-white/5 hover:text-white' : 'border-slate-200/60 hover:text-slate-900 dark:border-white/5 dark:hover:text-slate-50'}`}>{isHacker ? '~/stats' : 'Stats'}</a>
+                </div>
+              </nav>
+            )}
+          </>
+        )}
       </header>
 
       <main>
@@ -189,42 +393,146 @@ function App() {
       </main>
 
       <footer className={footerClasses}>
-        <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-3 px-6 sm:flex-row sm:items-center">
-          <div>
-            <p>{footer.text}</p>
-            <p className="mt-1 text-[11px] text-slate-500">{footer.subtleText}</p>
+        {isThreejs ? (
+          <div className="mx-auto max-w-5xl px-6 py-10">
+            {/* Animated scan-line top edge */}
+            <canvas
+              ref={footerScanRef}
+              width={1200}
+              height={1}
+              className="mb-8 w-full block"
+              aria-hidden="true"
+              style={{ height: 1 }}
+            />
+
+            <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+              {/* Left — logo + tagline */}
+              <div className="flex flex-col gap-3">
+                <Link to="/" className="group inline-flex items-center gap-2.5 no-underline">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 text-xs font-semibold text-[#050509] ring-1 ring-blue-500/30 transition group-hover:ring-cyan-400/50">
+                    {navInitials}
+                  </span>
+                  <span className="text-xs font-semibold tracking-widest uppercase text-slate-400 transition group-hover:text-slate-200">
+                    {hero.title}
+                  </span>
+                </Link>
+                <p className="max-w-xs text-[11px] leading-relaxed text-slate-500">{footer.text}</p>
+                {footer.subtleText && (
+                  <p className="text-[10px] text-slate-600">{footer.subtleText}</p>
+                )}
+              </div>
+
+              {/* Center — quick nav */}
+              <nav aria-label="Footer navigation" className="flex flex-col gap-2">
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-slate-600">Navigate</p>
+                {[
+                  { to: '/',         label: 'Home'     },
+                  { to: '/videos',   label: 'Videos'   },
+                  { to: '/blogs',    label: 'Blogs'    },
+                  { to: '/projects', label: 'Projects' },
+                ].map(({ to, label }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    className="text-[11px] text-slate-500 transition hover:text-blue-400"
+                  >
+                    {label}
+                  </Link>
+                ))}
+                <a
+                  href={`${import.meta.env.BASE_URL}#stats`}
+                  className="text-[11px] text-slate-500 transition hover:text-blue-400"
+                >
+                  Stats
+                </a>
+              </nav>
+
+              {/* Right — action buttons */}
+              <div className="flex flex-col gap-3">
+                <p className="mb-1 text-[9px] font-bold uppercase tracking-[0.25em] text-slate-600">Project</p>
+                <a
+                  href="https://github.com/amide-init/gitfolio"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300 transition hover:bg-amber-400/20"
+                >
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                    <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.873 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+                  </svg>
+                  Star on GitHub
+                </a>
+                <a
+                  href="https://github.com/amide-init/gitfolio/fork"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-indigo-400/30 bg-indigo-400/10 px-2.5 py-1 text-[11px] font-semibold text-indigo-300 transition hover:bg-indigo-400/20"
+                >
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                    <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" />
+                  </svg>
+                  Fork
+                </a>
+                <Link
+                  to="/admin"
+                  className="text-[11px] font-medium text-slate-600 transition hover:text-slate-400"
+                >
+                  Admin ↗
+                </Link>
+              </div>
+            </div>
+
+            {/* Bottom rule + copyright */}
+            <div className="mt-8 flex flex-col items-center gap-1 border-t border-blue-900/20 pt-6 sm:flex-row sm:justify-between">
+              <p className="text-[10px] text-slate-700">
+                Built with{' '}
+                <a href="https://github.com/amide-init/gitfolio" target="_blank" rel="noreferrer" className="text-slate-600 hover:text-blue-400 transition-colors">
+                  Gitfolio
+                </a>
+              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full bg-blue-500 opacity-60 animate-pulse" />
+                <span className="text-[10px] text-slate-700 font-mono">threejs template</span>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <a
-              href="https://github.com/amide-init/gitfolio"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition border-amber-400/40 bg-amber-400/10 text-amber-500 hover:bg-amber-400/20 dark:border-amber-400/30 dark:text-amber-300 dark:hover:bg-amber-400/20"
-            >
-              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
-                <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.873 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
-              </svg>
-              Star
-            </a>
-            <a
-              href="https://github.com/amide-init/gitfolio/fork"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition border-indigo-400/40 bg-indigo-400/10 text-indigo-500 hover:bg-indigo-400/20 dark:border-indigo-400/30 dark:text-indigo-300 dark:hover:bg-indigo-400/20"
-            >
-              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
-                <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" />
-              </svg>
-              Fork
-            </a>
-            <Link
-              to="/admin"
-              className="text-[11px] font-medium text-slate-500 underline-offset-2 hover:underline dark:text-slate-400"
-            >
-              Admin
-            </Link>
+        ) : (
+          <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-3 px-6 sm:flex-row sm:items-center">
+            <div>
+              <p>{footer.text}</p>
+              <p className="mt-1 text-[11px] text-slate-500">{footer.subtleText}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href="https://github.com/amide-init/gitfolio"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition border-amber-400/40 bg-amber-400/10 text-amber-500 hover:bg-amber-400/20 dark:border-amber-400/30 dark:text-amber-300 dark:hover:bg-amber-400/20"
+              >
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                  <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.873 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+                </svg>
+                Star
+              </a>
+              <a
+                href="https://github.com/amide-init/gitfolio/fork"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-semibold transition border-indigo-400/40 bg-indigo-400/10 text-indigo-500 hover:bg-indigo-400/20 dark:border-indigo-400/30 dark:text-indigo-300 dark:hover:bg-indigo-400/20"
+              >
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                  <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z" />
+                </svg>
+                Fork
+              </a>
+              <Link
+                to="/admin"
+                className="text-[11px] font-medium text-slate-500 underline-offset-2 hover:underline dark:text-slate-400"
+              >
+                Admin
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </footer>
     </div>
   )
